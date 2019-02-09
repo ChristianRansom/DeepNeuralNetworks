@@ -8,6 +8,13 @@ import perceptron
 
 def test():
     
+    
+    #This is the correct output that the network should eventually learn after enough training
+    '''This is a theoretical situation where we can use a single Neuron can learn to 
+    recognize which fighters in a game will be strong enough to win a fight. There are
+    many different factors which affect the chance a fighter will win. After lots of 
+    labeled training, the Network should be able to accurately predict whether or not
+    a fighter will win or lose'''
     threshold = 20
     correct_data = []
     correct_data.append(perceptron.Input("fast", 5))
@@ -28,7 +35,7 @@ def test():
     #print(inputs)
     
     a_perceptron = perceptron.Perceptron(input_data, correct_data, threshold)
-    a_perceptron.train(input_data, correct_data, 100)
+    a_perceptron.train(100)
     
 if __name__ == '__main__':
     test()

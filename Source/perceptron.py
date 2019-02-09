@@ -7,9 +7,12 @@ import math
 
 class Perceptron(object):
     '''
-    classdocs
+    A perceptron is a single neuron with multiple inputs and a single output. 
+    Each input has a value and a weight for the value. If the sum of the values
+    multiplied by their weights is greater than the threshold, then the perceptron
+    will output.
+    Outputs will always be 1 or 0
     '''
-
 
     def __init__(self, inputs, correct_data, threshold):
         '''
@@ -18,89 +21,99 @@ class Perceptron(object):
         self.inputs = inputs
         self.correct_data = correct_data
         self.threshold = threshold
-        self.output = None
+        self.output = []
         
-        #how much of a factor will it alter the weights when they are wrong... 
-        #it should actually start large, and slowly narrow as it learns...
+        #how much of a factor will it adjust the weights when they are wrong... 
         self.learning_rate = 2 #more like recalculation factor... 
         
-    def train(self, inputs, correct_data, iterations):
-        '''iterations are how many cycles of training we want to do''' 
-        #for each input i its weight will become 
-        #W(i) = W(i) + learning rate*(correct_output - actual_output)*input_value, 
-        #a = learning rate
+    def train(self, iterations):
+        '''
+        Iterations are how many cycles of training we want to do
+        A training iteration will test all possible input values
+        and adjust the weights with each test''' 
         
-        test_matrix = self.test_values(inputs)
-        #print(test_matrix)
+        #generates all possible test values in a matrix
+        test_matrix = self.test_values(self.inputs)
         
-        self.inputs = inputs
-        self.correct_data = correct_data
-        for temp in correct_data:
-            self.display_weight(temp)
+        for data in self.correct_data:
+            self.display_weight(data)
         
-        
-        for i in range(iterations): #how many times to iterate through all possible inputs
+        for _ in range(iterations): #how many times to iterate through all possible inputs
             for row in range(len(test_matrix)): #all the possible combinations of input
                 print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
                 print("Testing with input values: " + str(test_matrix[row]))
-                counter = 0
-                for input in self.inputs: #updates input values to next set of test values
-                    input.value = test_matrix[row][counter]
-                    counter = counter + 1  
-                counter = 0
-                for input in self.correct_data: #updates correct_data input values to next set of test values
-                    input.value = test_matrix[row][counter]
-                    counter = counter + 1   
-                self.output = self.calc_output(self.inputs) #calculates the output of the whole neuron 
-                correct_output = self.calc_output(self.correct_data)
-                #calculates weight adjustment based on current output and correct output difference
-                for input in self.inputs: 
-                    w = input.weight
-                    new_weight = w + self.learning_rate * (correct_output - self.output) * input.value
-                    input.weight = new_weight
+                
+                #updates input values to next set of test values from the test matrix
+                self.update_input_values(self.inputs, test_matrix, row)
+                self.update_input_values(self.correct_data, test_matrix, row)
                     
-                    self.display_weight(input)
-                    print("weight: " + str(w))
-                    print("learning rate: " + str(self.learning_rate))
-                    print("correct output: " + str(correct_output))
-                    print("output: " + str(self.output))
-                    print("input value: " + str(input.value))
-                    print("new adjusted weight = " + str(new_weight))
-                    print("--------------------------------------------")
+                #calculates the output of the whole neuron 
+                self.output = self.calc_output(self.inputs) 
+                
+                #calculates the output of a neuron with the correct weights
+                correct_output = self.calc_output(self.correct_data) 
+                self.adjust_weights(correct_output)
+                
+    def update_input_values(self, inputs, matrix, row):
+        counter = 0 #keeps track of which test value input we're inputing
+        #updates input values to next set of test values from the test matrix
+        for input in inputs: 
+            input.value = matrix[row][counter]
+            counter = counter + 1              
+                
+                    
+    def adjust_weights(self, correct_output):        
+        #calculates weight adjustment based on current output and correct output difference
+        for input in self.inputs: 
+            w = input.weight
+            
+            #New Weight = Old Weight + learning rate * (correct_output - actual_output) * input_value, 
+            new_weight = w + self.learning_rate * (correct_output - self.output) * input.value
+            input.weight = new_weight
+            
+            self.display_weight(input)
+            print("weight: " + str(w))
+            print("learning rate: " + str(self.learning_rate))
+            print("correct output: " + str(correct_output))
+            print("output: " + str(self.output))
+            print("input value: " + str(input.value))
+            print("new adjusted weight = " + str(new_weight))
+            print("--------------------------------------------")     
                 
     def calc_output(self, inputs):
         return self.activation_function(self.input_sum(inputs))
     
     @staticmethod
     def input_sum(inputs):
-        ''''multiplies the inputs by their weights and then adds them together
-        ie linear combination '''
+        '''multiplies the inputs by their weights and then adds them together'''
         result = 0
         for input in inputs:
-            print(str(input.value) + " * " + str(input.weight))
             result = result + input.value * input.weight
-        print("input sum result: " + str(result))
         return result
+    
+    def activation_function(self, input_sum):
+        '''
+        This function calculates the proper output for the perecptron
+        based on the inputs
+        '''
+        x = input_sum - self.threshold
+        return self.sigmoid(x) 
+        #return self.step_function(input_sum) #returns 1 or 0
          
     @staticmethod
     def sigmoid(x):
+        '''Returns a float between 0 and 1'''
         # 1 / (1 + 3^(x-1))
         return 1 /(1 + math.pow(math.e, (x * -1)))
 
     def step_function(self, input_sum):
+        '''Returns 1 or 0'''
         bias = self.threshold * -1
         if input_sum + bias > 0:
             return 1
         else:
             return 0
         
-    def activation_function(self, input_sum):
-        '''This function calculates the proper output for the perecptron
-        based on the inputs'''
-        x = input_sum - self.threshold
-        return self.sigmoid(x) #returns a float between 1 or 0
-        #return self.step_function(input_sum) #returns 1 or 0
-
     def add_input(self, input):
         self.inputs.append(input)
 
@@ -117,13 +130,14 @@ class Perceptron(object):
                 row.append(int(ch))
             result_matrix.append(row)
         return result_matrix
-            
-    def display_weight(self, input):
+    
+    @staticmethod
+    def display_weight(input):
         print("Input - Name: " + str(input.name) + " Weight: " + str(input.weight))
     
 class Input(object):
     '''
-    classdocs
+    Weights will always be a positive float
     '''
 
     def __init__(self, name, weight):
