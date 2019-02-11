@@ -5,7 +5,7 @@ Created on Feb 7, 2019
 '''
 import math
 
-class Perceptron(object):
+class Neuron(object):
     '''
     A perceptron is a single neuron with multiple inputs and a single output. 
     Each input has a value and a weight for the value. If the sum of the values
