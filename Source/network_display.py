@@ -1,6 +1,6 @@
 from tkinter import *
 from tkinter import ttk
-import network_tester
+import network
 
 class GUI: 
     
@@ -60,11 +60,11 @@ class GUI:
                                 outline="blue", 
                                 fill="blue", width=2)  
         
-        network_tester.test()
+        a_network = network.Supervised_Network(self.canvas)
+        a_network.train(100)
         
     def quit_game(self):
         sys.exit(0)
-
 
 class Window(Frame):    
   

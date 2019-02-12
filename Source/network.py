@@ -1,0 +1,217 @@
+'''
+Created on Feb 11, 2019
+
+@author: Christian Ransom
+'''
+import neuron
+from abc import ABC, abstractmethod
+from _collections import deque
+
+class Network():
+    '''
+    A neural network is a system used for machine learning that has
+    been inspired by the brain. Many neurons 
+    '''
+
+    def __init__(self, inputs, layout, threshold, canvas):
+        '''
+        Constructor
+        '''
+        '''determines how many layers and how many neurons in each layer
+        each element in the list indicates how many neurons are in that layer
+        The first element corresponds to the bottom layer that is fed into 
+        by the input layer. It is NOT the input layer. The last element in 
+        the list is the top/final output layer which will usually just be 
+        one neuron. 
+        '''
+        self.inputs = inputs #stores inputs so we can easily update the state 
+        self.layout = layout #stores layout because it can be used in drawing the network
+        self.canvas = canvas #used for drawing. Expects a tk.Canvas()
+        self.threshold = threshold
+        self.build_network()
+
+    def build_network(self):
+        '''Builds the network according to the layout matrix specifications
+        This method takes care of creating and connecting all the neurons and
+        inputs in the network
+        This method builds the network from the bottom up, starting with the
+        input layer'''
+        
+        self.get_state() #update networks states to match actually state 
+        
+        a_neuron = None
+        for _ in range(len(self.layout)): #the lengths of layout should be how many layers_
+            #remembers previous layers neurons so we can link current ones to them
+            prev_layer = self.inputs 
+            current_layer = []
+            for i in self.layout: #how many neurons in this layer
+                a_neuron = neuron.Neuron(prev_layer, self.threshold) #previous layer is the inputs
+                current_layer.append(a_neuron)
+            prev_layer = current_layer
+            current_layer.clear()
+                
+        self.root = a_neuron #The last neuron added is the head of the network tree
+                #might have to use a queue or stack here to keep track of the layers and 
+                #all the connections they  need to be given. 
+
+    def train(self, iterations):
+        '''
+        Eventually I want to be able to start and pause training with events 
+        
+        1. Get state #initialize inputs 
+        2. Get output recursively from the root
+        3. Update weights based on the output
+        '''
+        self.get_state() #Updates the current input values of the network 
+        
+        for i in range(iterations):
+            self.recursive_train(self.root)
+        
+    @abstractmethod
+    def get_state(self):
+        pass
+        
+    def render(self):
+        pass
+    
+    
+class Supervised_Network(Network):
+    '''
+    A supervised network is one where the correct outputs are given
+    to train with. The weights are initially randomized and the network
+    trains on different inputs and compares its output against the
+    provided correct outputs. Every time the network produces a
+    wrong output, the network does some weight adjustment to produce 
+    more accurate predictions.This is a kind of regression learning. 
+    '''    
+    
+    def __init__(self, canvas):
+        '''This is a theoretical situation where we can use a single Neuron can learn to 
+        recognize which fighters in a game will be strong enough to win a fight. There are
+        many different factors which affect the chance a fighter will win. After lots of 
+        labeled training, the Network should be able to accurately predict whether or not
+        a fighter will win or lose'''
+        self.correct_data = [] #This is the correct output that the network should eventually learn after enough training
+        self.correct_data.append(neuron.Input("fast", 5))
+        self.correct_data.append(neuron.Input("strong", 7))
+        self.correct_data.append(neuron.Input("skilled", 4))
+        self.correct_data.append(neuron.Input("tall", 2))
+        self.correct_data.append(neuron.Input("intelligent", 10))
+        threshold = 20
+
+        #I'll manually put in incorrect weights for now. Usually its randomly generated 
+        input_data = []
+        input_data.append(neuron.Input("fast", 0))
+        input_data.append(neuron.Input("strong", 0))
+        input_data.append(neuron.Input("skilled", 0))
+        input_data.append(neuron.Input("tall", 0))
+        input_data.append(neuron.Input("intelligent", 0))
+        
+        #a_neuron = neuron.Neuron(input_data, threshold)
+        self.test_matrix = self.test_values(input_data)
+        self.test_iterator = 0
+        layout = [1] #We'll only have one neuron for this simple network
+        super().__init__(input_data, layout, threshold, canvas)
+        
+        
+    def recursive_train(self, root):
+        '''
+        This method will recurse through the network tree using a depth 
+        first search to do a single training iteration using the current 
+        input state. The weights will only be adjusted once through this 
+        single pass. Input values should already be updated to the current
+        state. 
+        1. Get state #initialize inputs 
+        2. Get output recursively from the root
+        3. Update weights based on the output        
+        
+        ''' 
+        
+        
+        #base case: 
+        network_output = self.calc_output()
+        
+
+        
+        
+        
+
+        #updates input values to next set of test values from the test matrix
+        self.update_input_values(self.inputs, test_matrix, row)
+        self.update_input_values(self.correct_data, test_matrix, row)
+            
+        #calculates the output of the whole neuron 
+        self.output = self.calc_output(self.inputs) 
+        
+        #calculates the output of a neuron with the correct weights
+        correct_output = self.calc_output(self.correct_data) 
+        self.adjust_weights(correct_output)
+    
+    def calc_output(self):
+        '''this is implemented iteratively instead of recursively so that the 
+        stack size wont limit the size of the networks. This method uses a 
+        depth first search post order
+        '''
+        stack1 = deque()
+        stack2 = deque() #stack 2 will be filled postorder and processed after the loop
+        
+        stack1.append(self.root)
+        
+        while len(stack1) != 0:
+            temp = stack1.pop()
+            stack2.append(temp)
+            for input in temp.inputs:
+                if type(input) != neuron.Input: #Only add if we haven't hit the bottom of the stack
+                    stack1.append(input)
+        
+        while len(stack2) != 0:
+            temp = stack2.pop() #DFS order is used to calc the output up through the network
+            temp.calc_output()
+    
+    def get_state(self):
+        '''Updates the values of the network inputs to match the next testing state'''
+        state = self.test_matrix[self.test_iterator] #get current state inputs in a list
+        
+        for i in range(len(state)):
+            self.inputs[i].output = state[i]
+        
+        #If we've tested all inputs in the test matrix, start over from beginning 
+        if(self.test_iterator >= len(self.test_matrix)):
+            self.test_iterator = 0
+        else: 
+            self.test_iterator = self.test_iterator + 1
+    
+    def test_values(self, inputs):
+        '''Generates a matrix of all possible test values'''
+        result_matrix = []
+        #Counts in binary numbers and adds them then splits the digits to make the matrix
+        for i in range(len(inputs) * len(inputs)):
+            row = []
+            #Used for how many digits the binaries should have
+            format_string = "0" + str(len(inputs)) + "b"
+            binary_string = format(i, format_string)
+            for ch in str(binary_string):
+                row.append(int(ch))
+            result_matrix.append(row)
+        return result_matrix
+    
+           
+class Reinforcement_Network(Network):
+    '''
+    A reinforcement network doesn't require sending in all the correct 
+    outputs to the network for training. Instead, it requires some form
+    of goals for the network to achieve which require a series of multiple
+    decisions. When the network does succeed, it uses back-propagation 
+    to adjust the weights of the decisions it made that led up to its 
+    reward. The same process will happen with punishments. 
+    
+    This kind of learning is more useful in situations where there isn't 
+    always a single correct output for every input state, 
+    e.g. a video game like snake. 
+    '''        
+    def __init__(self, canvas):
+        pass
+        
+        
+    def get_state(self):
+        pass

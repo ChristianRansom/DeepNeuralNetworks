@@ -33,6 +33,6 @@ def test():
     #print(correct_data)
     #print(inputs)
     
-    a_perceptron = neuron.Neuron(input_data, correct_data, threshold)
-    a_perceptron.train(100)
+    a_neuron = neuron.Neuron(input_data, correct_data, threshold)
+    a_neuron.train(100)
     

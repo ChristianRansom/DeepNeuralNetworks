@@ -5,23 +5,35 @@ Created on Feb 7, 2019
 '''
 import math
 
-class Neuron(object):
+class Input():
     '''
-    A perceptron is a single neuron with multiple inputs and a single output. 
-    Each input has a value and a weight for the value. If the sum of the values
-    multiplied by their weights is greater than the threshold, then the perceptron
-    will output.
-    Outputs will always be 1 or 0
+    Weights will always be a positive float
+    This class allows for multiple neurons and objects to have references to the same
+    input values. This class is essentially a wrapper for input values
     '''
 
-    def __init__(self, inputs, correct_data, threshold):
+    def __init__(self, name = "input", weight = 1):
+        '''
+        Constructor
+        '''
+        self.name = name
+        self.weight = weight
+        self.output = 0 #Value is only stored when the object is an Input not a Neuron
+        
+    def get_output(self):
+        return self.output
+        
+class Neuron(Input):
+    '''
+    Inherits weight and output 
+    '''
+
+    def __init__(self, inputs, threshold):
         '''
         Constructor
         '''
         self.inputs = inputs
-        self.correct_data = correct_data
         self.threshold = threshold
-        self.output = []
         
         #how much of a factor will it adjust the weights when they are wrong... 
         self.learning_rate = 2 #more like recalculation factor... 
@@ -42,7 +54,7 @@ class Neuron(object):
             for row in range(len(test_matrix)): #all the possible combinations of input
                 print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
                 print("Testing with input values: " + str(test_matrix[row]))
-                
+                0
                 #updates input values to next set of test values from the test matrix
                 self.update_input_values(self.inputs, test_matrix, row)
                 self.update_input_values(self.correct_data, test_matrix, row)
@@ -61,7 +73,6 @@ class Neuron(object):
             input.value = matrix[row][counter]
             counter = counter + 1              
                 
-                    
     def adjust_weights(self, correct_output):        
         #calculates weight adjustment based on current output and correct output difference
         for input in self.inputs: 
@@ -80,20 +91,23 @@ class Neuron(object):
             print("new adjusted weight = " + str(new_weight))
             print("--------------------------------------------")     
                 
-    def calc_output(self, inputs):
-        return self.activation_function(self.input_sum(inputs))
+    def calc_output(self): 
+        '''This method assumes that the inputs of this neuron are already updated'''
+        return self.activation_function(self.input_sum(self.inputs))
+        
+        
     
     @staticmethod
     def input_sum(inputs):
         '''multiplies the inputs by their weights and then adds them together'''
         result = 0
         for input in inputs:
-            result = result + input.value * input.weight
+            result = result + input.output * input.weight
         return result
     
     def activation_function(self, input_sum):
         '''
-        This function calculates the proper output for the perecptron
+        This function calculates the proper output for the neuron
         based on the inputs
         '''
         x = input_sum - self.threshold
@@ -117,33 +131,7 @@ class Neuron(object):
     def add_input(self, input):
         self.inputs.append(input)
 
-    def test_values(self, inputs):
-        '''Generates a matrix of all possible test values'''
-        result_matrix = []
-        #Counts in binary numbers and adds them then splits the digits to make the matrix
-        for i in range(len(inputs) * len(inputs)):
-            row = []
-            #Used for how many digits the binaries should have
-            format_string = "0" + str(len(inputs)) + "b"
-            binary_string = format(i, format_string)
-            for ch in str(binary_string):
-                row.append(int(ch))
-            result_matrix.append(row)
-        return result_matrix
-    
     @staticmethod
     def display_weight(input):
         print("Input - Name: " + str(input.name) + " Weight: " + str(input.weight))
     
-class Input(object):
-    '''
-    Weights will always be a positive float
-    '''
-
-    def __init__(self, name, weight):
-        '''
-        Constructor
-        '''
-        self.name = name
-        self.weight = weight
-        self.value = 0
