@@ -13,46 +13,41 @@ class Network():
     been inspired by the brain. Many neurons 
     '''
 
-    def __init__(self, inputs, layout, threshold, canvas):
+    def __init__(self, layout, threshold, canvas):
+        '''layout: Determines how many layers and how many neurons in each layer.
+        Each element in the list indicates how many neurons are in that layer.
+        The first element in layout[] represents how man inputs. The last
+        element in layout[-1] represents how many outputs. The other elements
+        in layout represent how many neurons in the respective hidden layer
         '''
-        Constructor
-        '''
-        '''determines how many layers and how many neurons in each layer
-        each element in the list indicates how many neurons are in that layer
-        The first element corresponds to the bottom layer that is fed into 
-        by the input layer. It is NOT the input layer. The last element in 
-        the list is the top/final output layer which will usually just be 
-        one neuron. 
-        '''
-        self.inputs = inputs #stores inputs so we can easily update the state 
-        self.layout = layout #stores layout because it can be used in drawing the network
+        
+        #stores the actual neurons in a nested list. Its a list of lists of each layer 
+        self.layers = [] 
         self.canvas = canvas #used for drawing. Expects a tk.Canvas()
         self.threshold = threshold
-        self.build_network()
+        self.build_network(layout)
 
-    def build_network(self):
-        '''Builds the network according to the layout matrix specifications
+    def build_network(self, layout):
+        '''Builds the network according to the layout specifications
         This method takes care of creating and connecting all the neurons and
         inputs in the network
         This method builds the network from the bottom up, starting with the
         input layer'''
-        
-        self.get_state() #update networks states to match actually state 
-        
-        a_neuron = None
-        for _ in range(len(self.layout)): #the lengths of layout should be how many layers_
-            #remembers previous layers neurons so we can link current ones to them
-            prev_layer = self.inputs 
-            current_layer = []
-            for i in self.layout: #how many neurons in this layer
-                a_neuron = neuron.Neuron(prev_layer, self.threshold) #previous layer is the inputs
-                current_layer.append(a_neuron)
-            prev_layer = current_layer
-            current_layer.clear()
-                
-        self.root = a_neuron #The last neuron added is the head of the network tree
-                #might have to use a queue or stack here to keep track of the layers and 
-                #all the connections they  need to be given. 
+
+    
+
+        for i in range(len(layout)): #the lengths of layout should be how many layers
+            
+            self.layers.append([]) #initialize the next empty layer
+            
+            #This is where the weight matrix should be built.  Starting with random numbers
+            
+            layer = []
+            
+            for _ in range(layout[i]): #how many neurons in this layer
+                layer.append(neuron.Neuron(self.threshold))
+
+            self.layers[i] = layer 
 
     def train(self, iterations):
         '''
@@ -74,7 +69,11 @@ class Network():
     def render(self):
         pass
     
-    
+    def print_network(self):
+        for i in range(len(self.layers)):
+            for a_neuron in self.layers[i]: 
+                print("Layer " + str(i) + " " + str(a_neuron))
+        
 class Supervised_Network(Network):
     '''
     A supervised network is one where the correct outputs are given
@@ -82,11 +81,13 @@ class Supervised_Network(Network):
     trains on different inputs and compares its output against the
     provided correct outputs. Every time the network produces a
     wrong output, the network does some weight adjustment to produce 
-    more accurate predictions.This is a kind of regression learning. 
+    more accurate predictions.This is a kind of regression learning.
+    This kind of learning is useful for when there is always one and 
+    only one correct output for every possible set of inputs. 
     '''    
     
     def __init__(self, canvas):
-        '''This is a theoretical situation where we can use a single Neuron can learn to 
+        '''This is a theoretical situation where we can use a single Neuron to learn to 
         recognize which fighters in a game will be strong enough to win a fight. There are
         many different factors which affect the chance a fighter will win. After lots of 
         labeled training, the Network should be able to accurately predict whether or not
@@ -97,7 +98,13 @@ class Supervised_Network(Network):
         self.correct_data.append(neuron.Input("skilled", 4))
         self.correct_data.append(neuron.Input("tall", 2))
         self.correct_data.append(neuron.Input("intelligent", 10))
-        threshold = 20
+        
+        
+        #the thresholds/biases should actually be implemented randomly as well. 
+        #correct data needs to only be a matrix of inputs and a correct output. 
+        #we don't need to create a whole network just for the inputs
+        threshold = 20 #this is like the totaly power they will need to win
+        
 
         #I'll manually put in incorrect weights for now. Usually its randomly generated 
         input_data = []
@@ -110,8 +117,8 @@ class Supervised_Network(Network):
         #a_neuron = neuron.Neuron(input_data, threshold)
         self.test_matrix = self.test_values(input_data)
         self.test_iterator = 0
-        layout = [1] #We'll only have one neuron for this simple network
-        super().__init__(input_data, layout, threshold, canvas)
+        layout = [3, 2, 1] #We'll only have one neuron for this simple network
+        super().__init__(layout, threshold, canvas)
         
         
     def recursive_train(self, root):
@@ -131,20 +138,10 @@ class Supervised_Network(Network):
         #base case: 
         network_output = self.calc_output()
         
-
-        
-        
-        
-
-        #updates input values to next set of test values from the test matrix
-        self.update_input_values(self.inputs, test_matrix, row)
-        self.update_input_values(self.correct_data, test_matrix, row)
-            
-        #calculates the output of the whole neuron 
-        self.output = self.calc_output(self.inputs) 
-        
         #calculates the output of a neuron with the correct weights
         correct_output = self.calc_output(self.correct_data) 
+        
+        
         self.adjust_weights(correct_output)
     
     def calc_output(self):

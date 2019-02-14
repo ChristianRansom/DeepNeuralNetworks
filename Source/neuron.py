@@ -23,17 +23,17 @@ class Input():
     def get_output(self):
         return self.output
         
-class Neuron(Input):
+class Neuron():
     '''
     Inherits weight and output 
     '''
 
-    def __init__(self, inputs, threshold):
+    def __init__(self, threshold):
         '''
         Constructor
         '''
-        self.inputs = inputs
         self.threshold = threshold
+        self.output = None
         
         #how much of a factor will it adjust the weights when they are wrong... 
         self.learning_rate = 2 #more like recalculation factor... 

@@ -61,7 +61,8 @@ class GUI:
                                 fill="blue", width=2)  
         
         a_network = network.Supervised_Network(self.canvas)
-        a_network.train(100)
+        a_network.print_network()
+        #a_network.train(100)
         
     def quit_game(self):
         sys.exit(0)
