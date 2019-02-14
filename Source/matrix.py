@@ -47,6 +47,15 @@ class Matrix():
                 for k in range(len(b.data)):
                     result[i][j] = result[i][j] + a.data[i][k] * b.data[k][j]
         return result
+    
+    @staticmethod
+    def make_matrix(rows, cols):
+        result = []
+        for row in range(rows):
+            result.append([])
+            for col in range(cols):
+                result[row].append(0) #defaults all values to 0
+        return Matrix(result)
 
     def __repr__(self):
         result = ""

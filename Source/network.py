@@ -6,6 +6,7 @@ Created on Feb 11, 2019
 import neuron
 from abc import ABC, abstractmethod
 from _collections import deque
+import matrix
 
 class Network():
     '''
@@ -23,6 +24,8 @@ class Network():
         
         #stores the actual neurons in a nested list. Its a list of lists of each layer 
         self.layers = [] 
+        #weights will store a list of Matrix objects
+        self.weights = [] #len(weights) will be len(layers) - 1. It will 
         self.canvas = canvas #used for drawing. Expects a tk.Canvas()
         self.threshold = threshold
         self.build_network(layout)
@@ -34,21 +37,24 @@ class Network():
         This method builds the network from the bottom up, starting with the
         input layer'''
 
-    
 
         for i in range(len(layout)): #the lengths of layout should be how many layers
             
             self.layers.append([]) #initialize the next empty layer
             
-            #This is where the weight matrix should be built.  Starting with random numbers
-            
             layer = []
             
             for _ in range(layout[i]): #how many neurons in this layer
                 layer.append(neuron.Neuron(self.threshold))
+                
+
 
             self.layers[i] = layer 
-
+            if i > 0 and i < len(layout):
+                weight_matrix = matrix.Matrix.make_matrix(len(self.layers[i-1]), len(self.layers[i]))
+                self.weights.append(weight_matrix)
+                #Matrix size = how many neurons in prev layer x neurons in current layer
+    
     def train(self, iterations):
         '''
         Eventually I want to be able to start and pause training with events 
