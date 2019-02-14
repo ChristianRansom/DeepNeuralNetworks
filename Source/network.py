@@ -54,6 +54,8 @@ class Network():
                 weight_matrix = matrix.Matrix.make_matrix(len(self.layers[i-1]), len(self.layers[i]))
                 self.weights.append(weight_matrix)
                 #Matrix size = how many neurons in prev layer x neurons in current layer
+                
+        self.render()
     
     def train(self, iterations):
         '''
@@ -73,8 +75,32 @@ class Network():
         pass
         
     def render(self):
-        pass
-    
+        self.canvas.update()
+        self.canvas.delete("all") #it'd be better to just store each canvas circle object...
+        #self.canvas.itemconfigure(self.canvas_frame, width=width, height=event.height)
+        print(str(self.canvas.winfo_height()))
+        print(str(self.canvas.winfo_width()))
+        
+        layer_count = self.canvas.winfo_width() / len(self.layers)
+        #this should depend on the max number of nodes in a layer
+        node_size = self.canvas.winfo_height() / 10 
+
+        for i in range(len(self.layers)): #the number of layers
+            w = layer_count * (i) + layer_count / 2
+            counter = 0
+            for _ in self.layers[i]: #loop through the neurons in this layer
+                current_layer_size = len(self.layers[i])
+                layer_size = self.canvas.winfo_height() / current_layer_size
+                h = layer_size * (counter) + layer_size / 2
+                #h = h + (layer_size / 2) * i
+                counter = counter + 1
+                
+                self.canvas.create_oval(w - node_size / 2, h - node_size / 2, 
+                                w + node_size / 2, h + node_size / 2, 
+                                outline="black", 
+                                fill="blue", width=2)     
+                
+                
     def print_network(self):
         for i in range(len(self.layers)):
             for a_neuron in self.layers[i]: 
@@ -123,7 +149,7 @@ class Supervised_Network(Network):
         #a_neuron = neuron.Neuron(input_data, threshold)
         self.test_matrix = self.test_values(input_data)
         self.test_iterator = 0
-        layout = [3, 2, 1] #We'll only have one neuron for this simple network
+        layout = [3, 4, 3, 2] #We'll only have one neuron for this simple network
         super().__init__(layout, threshold, canvas)
         
         

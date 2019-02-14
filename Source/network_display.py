@@ -51,15 +51,11 @@ class GUI:
         mid_point = [w / 2, h / 2]
         node_size = h / 10
         
-        print(str(self.canvas.winfo_height()))
-        print(str(self.canvas.winfo_width()))
+
         #self.canvas.create_rectangle(0, 0, w, h, 
         #    outline="#f11", fill="#1f1", width=2)
         
-        self.canvas.create_oval(mid_point[0] - node_size / 2, mid_point[1] - node_size / 2, 
-                                mid_point[0] + node_size / 2, mid_point[1] + node_size / 2, 
-                                outline="blue", 
-                                fill="blue", width=2)  
+
         
         a_matrix = matrix.Matrix([[3, 0, 0],
                                   [0, 0, 0],
