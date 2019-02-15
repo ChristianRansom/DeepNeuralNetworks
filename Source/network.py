@@ -7,6 +7,7 @@ import neuron
 from abc import ABC, abstractmethod
 from _collections import deque
 import matrix
+import copy
 
 class Network():
     '''
@@ -28,6 +29,7 @@ class Network():
         self.weights = [] #len(weights) will be len(layers) - 1. It will 
         self.canvas = canvas #used for drawing. Expects a tk.Canvas()
         self.threshold = threshold
+        self.labels = []
         self.build_network(layout)
 
     def build_network(self, layout):
@@ -55,7 +57,7 @@ class Network():
                 self.weights.append(weight_matrix)
                 #Matrix size = how many neurons in prev layer x neurons in current layer
                 
-        self.render()
+        self.draw_network()
     
     def train(self, iterations):
         '''
@@ -74,32 +76,38 @@ class Network():
     def get_state(self):
         pass
         
-    def render(self):
+    def draw_network(self):
         self.canvas.update()
         self.canvas.delete("all") #it'd be better to just store each canvas circle object...
         #self.canvas.itemconfigure(self.canvas_frame, width=width, height=event.height)
-        print(str(self.canvas.winfo_height()))
-        print(str(self.canvas.winfo_width()))
-        
         layer_count = self.canvas.winfo_width() / len(self.layers)
         #this should depend on the max number of nodes in a layer
         node_size = self.canvas.winfo_height() / 10 
+        prev_layer = []
 
         for i in range(len(self.layers)): #the number of layers
             w = layer_count * (i) + layer_count / 2
             counter = 0
+            current_layer = []
             for _ in self.layers[i]: #loop through the neurons in this layer
                 current_layer_size = len(self.layers[i])
                 layer_size = self.canvas.winfo_height() / current_layer_size
                 h = layer_size * (counter) + layer_size / 2
-                #h = h + (layer_size / 2) * i
                 counter = counter + 1
                 
-                self.canvas.create_oval(w - node_size / 2, h - node_size / 2, 
+                current_layer.append(self.canvas.create_oval(w - node_size / 2, h - node_size / 2, 
                                 w + node_size / 2, h + node_size / 2, 
                                 outline="black", 
-                                fill="blue", width=2)     
-                
+                                fill="blue", width=2))
+
+            if i > 0 and i < len(self.layers):
+                for prev_neuron in prev_layer:
+                    for next_neuron in current_layer:
+                        line_start = self.canvas.coords(prev_neuron) 
+                        line_finish = self.canvas.coords(next_neuron)
+                        self.canvas.create_line(line_start[0] + node_size / 2, line_start[1] + node_size / 2,
+                                                line_finish[0] + node_size / 2, line_finish[1] + node_size / 2)
+            prev_layer = copy.copy(current_layer)    
                 
     def print_network(self):
         for i in range(len(self.layers)):
