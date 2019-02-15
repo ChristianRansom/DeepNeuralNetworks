@@ -3,6 +3,7 @@ Created on Feb 14, 2019
 
 @author: Christian Ransom
 '''
+import random
 
 class Matrix():
     '''This is a class to help handle network weight operations 
@@ -54,7 +55,7 @@ class Matrix():
         for row in range(rows):
             result.append([])
             for col in range(cols):
-                result[row].append(0) #defaults all values to 0
+                result[row].append(random.random()) #defaults all values to 0
         return Matrix(result)
 
     def __repr__(self):

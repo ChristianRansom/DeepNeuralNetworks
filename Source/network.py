@@ -30,6 +30,7 @@ class Network():
         self.canvas = canvas #used for drawing. Expects a tk.Canvas()
         self.threshold = threshold
         self.labels = []
+        self.weight_displays = []
         self.build_network(layout)
 
     def build_network(self, layout):
@@ -84,7 +85,8 @@ class Network():
         #this should depend on the max number of nodes in a layer
         node_size = self.canvas.winfo_height() / 10 
         prev_layer = []
-
+        weight_matrix_counter = 0
+        self.weight_displays = []
         for i in range(len(self.layers)): #the number of layers
             w = layer_width * (i) + layer_width / 2
             counter = 0
@@ -100,7 +102,8 @@ class Network():
                                 outline="black", 
                                 fill="blue", width=2))
 
-            if i > 0 and i < len(self.layers):
+            if 0 < i < len(self.layers): #TODO clean this crap up
+                self.weight_displays.append([])
                 for prev_neuron in prev_layer:
                     for next_neuron in current_layer:
                         line_start = self.canvas.coords(prev_neuron) 
@@ -108,12 +111,25 @@ class Network():
                         self.canvas.create_line(line_start[0] + node_size / 2, line_start[1] + node_size / 2,
                                                 line_finish[0] + node_size / 2, line_finish[1] + node_size / 2)
                         height = line_start[1] + (line_finish[1] - line_start[1]) / 4 + node_size / 2
-                        self.canvas.create_text(w -  3 * layer_width / 4, height, text="0")
-                        #Draw the weight labels
+                        text = self.canvas.create_text(w -  3 * layer_width / 4, height, text="0")
+                        self.weight_displays[weight_matrix_counter].append(text)
+                weight_matrix_counter = weight_matrix_counter + 1
                         
-                        
-            prev_layer = copy.copy(current_layer)    
-    
+            prev_layer = copy.copy(current_layer)
+        self.draw_weights()
+            
+    def draw_weights(self):
+        print(self.weights)
+        i = 0
+        for weight_matrix in self.weights: #which layer of weights
+            j = 0
+            for row in range(len(weight_matrix.data)):
+                for col in range(len(weight_matrix.data[row])):
+                    print("item id: " + str(self.weight_displays[i][j]))
+                    self.canvas.itemconfig(self.weight_displays[i][j], text = '%.2f' % weight_matrix.data[row][col])
+                    j = j + 1
+            i = i + 1
+            
     def print_network(self):
         for i in range(len(self.layers)):
             for a_neuron in self.layers[i]: 
