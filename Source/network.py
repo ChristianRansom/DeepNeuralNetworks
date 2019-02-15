@@ -80,13 +80,13 @@ class Network():
         self.canvas.update()
         self.canvas.delete("all") #it'd be better to just store each canvas circle object...
         #self.canvas.itemconfigure(self.canvas_frame, width=width, height=event.height)
-        layer_count = self.canvas.winfo_width() / len(self.layers)
+        layer_width = self.canvas.winfo_width() / len(self.layers)
         #this should depend on the max number of nodes in a layer
         node_size = self.canvas.winfo_height() / 10 
         prev_layer = []
 
         for i in range(len(self.layers)): #the number of layers
-            w = layer_count * (i) + layer_count / 2
+            w = layer_width * (i) + layer_width / 2
             counter = 0
             current_layer = []
             for _ in self.layers[i]: #loop through the neurons in this layer
@@ -107,8 +107,13 @@ class Network():
                         line_finish = self.canvas.coords(next_neuron)
                         self.canvas.create_line(line_start[0] + node_size / 2, line_start[1] + node_size / 2,
                                                 line_finish[0] + node_size / 2, line_finish[1] + node_size / 2)
+                        height = line_start[1] + (line_finish[1] - line_start[1]) / 4 + node_size / 2
+                        self.canvas.create_text(w -  3 * layer_width / 4, height, text="0")
+                        #Draw the weight labels
+                        
+                        
             prev_layer = copy.copy(current_layer)    
-                
+    
     def print_network(self):
         for i in range(len(self.layers)):
             for a_neuron in self.layers[i]: 
@@ -157,7 +162,7 @@ class Supervised_Network(Network):
         #a_neuron = neuron.Neuron(input_data, threshold)
         self.test_matrix = self.test_values(input_data)
         self.test_iterator = 0
-        layout = [3, 4, 3, 2] #We'll only have one neuron for this simple network
+        layout = [2, 3, 3, 2] #We'll only have one neuron for this simple network
         super().__init__(layout, threshold, canvas)
         
         
