@@ -75,7 +75,9 @@ class GUI:
         
         #print(matrix.Matrix.multiply(a_matrix, b_matrix))
         
-        a_network = network.Supervised_Network(self.canvas)
+        #a_network = network.Single_Neuron_Network(self.canvas)
+        #a_network.test()
+        a_network = network.Supervised_Network([3,2], self.canvas)
         #a_network.print_network()
         #a_network.train(100)
         
@@ -89,13 +91,11 @@ class Window(Frame):
          
         self.initUI()
         
-        
     def initUI(self):
         
         self['borderwidth'] = 2
         self['relief'] = 'sunken'
         self.pack(fill=BOTH, expand=1)
-
 
         canvas = Canvas(self) #create a canvas with the parent being this window class
         print(str(self.winfo_reqheight()))

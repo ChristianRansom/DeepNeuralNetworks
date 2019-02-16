@@ -34,6 +34,7 @@ class Neuron():
         '''
         self.threshold = threshold
         self.output = None
+        self.inputs = []
         
         #how much of a factor will it adjust the weights when they are wrong... 
         self.learning_rate = 2 #more like recalculation factor... 
@@ -130,8 +131,3 @@ class Neuron():
         
     def add_input(self, input):
         self.inputs.append(input)
-
-    @staticmethod
-    def display_weight(input):
-        print("Input - Name: " + str(input.name) + " Weight: " + str(input.weight))
-    

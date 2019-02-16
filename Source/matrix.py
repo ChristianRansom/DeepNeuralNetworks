@@ -52,10 +52,13 @@ class Matrix():
     @staticmethod
     def make_matrix(rows, cols):
         result = []
+        counter = 0
         for row in range(rows):
             result.append([])
             for col in range(cols):
-                result[row].append(random.random()) #defaults all values to 0
+                #result[row].append(random.random()) #defaults all values to 0
+                result[row].append(counter) #defaults all values to 0
+                counter = counter + 1
         return Matrix(result)
 
     def __repr__(self):
