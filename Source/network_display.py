@@ -77,7 +77,7 @@ class GUI:
         
         #a_network = network.Single_Neuron_Network(self.canvas)
         #a_network.test()
-        a_network = network.Supervised_Network([3,2], self.canvas)
+        a_network = network.Supervised_Network([3 ,2, 2, 1], self.canvas)
         #a_network.print_network()
         #a_network.train(100)
         

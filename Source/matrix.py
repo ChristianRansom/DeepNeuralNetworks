@@ -47,7 +47,7 @@ class Matrix():
                 # iterate through rows of b
                 for k in range(len(b.data)):
                     result[i][j] = result[i][j] + a.data[i][k] * b.data[k][j]
-        return result
+        return Matrix(result)
     
     @staticmethod
     def make_matrix(rows, cols):
@@ -56,8 +56,9 @@ class Matrix():
         for row in range(rows):
             result.append([])
             for col in range(cols):
-                #result[row].append(random.random()) #defaults all values to 0
-                result[row].append(counter) #defaults all values to 0
+                result[row].append(random.random()) #randomizes values
+                #result[row].append(counter) #defaults all values to 0
+                #result[row].append(1) #increments each value
                 counter = counter + 1
         return Matrix(result)
 

@@ -30,7 +30,7 @@ class Network():
         #weights will store a list of Matrix objects
         self.weights = [] #len(weights) will be len(layers) - 1. It will 
         self.canvas = canvas #used for drawing. Expects a tk.Canvas()
-        self.threshold = threshold
+        self.threshold = .5
         self.labels = []
         self.weight_displays = []
         self.build_network(layout)
@@ -57,6 +57,7 @@ class Network():
                 #Matrix size = how many neurons in prev layer x neurons in current layer
                 
         self.draw_network()
+        self.feed_forward(matrix.Matrix([[1], [1], [1]]))
     
     def train(self, iterations):
         '''
@@ -130,7 +131,41 @@ class Network():
                     self.canvas.itemconfig(self.weight_displays[i][j], text = '%.2f' % weight_matrix.data[row][col])
                     j = j + 1
             i = i + 1
-            
+    
+    def feed_forward(self, inputs):
+        '''Loop through layers calculating their outputs and storing the outputs in the neurons
+        @param inputs: a matrix object with only 1 column and a row for each input'''
+        current_outputs = inputs 
+        for i in range(len(self.weights)): #How many weight matrices we have
+            current_outputs = matrix.Matrix.multiply(self.weights[i], current_outputs)
+            current_outputs = self.activation_function(current_outputs)
+            #print(current_outputs)
+    
+    def activation_function(self, inputs):
+        '''
+        This function calculates the proper output for the neuron
+        based on the inputs
+        @param inputs: a matrix object with only 1 column and a row for each input
+        '''
+        for i in range(len(inputs.data)):
+            inputs.data[i][0] = self.step_function(inputs.data[i][0])
+        return inputs
+        #return self.step_function(input_sum) #returns 1 or 0
+         
+    @staticmethod
+    def sigmoid(x):
+        '''Returns a float between 0 and 1'''
+        # 1 / (1 + 3^(x-1))
+        return 1 /(1 + math.pow(math.e, (x * -1)))
+
+    def step_function(self, input_sum):
+        '''Returns 1 or 0'''
+        bias = self.threshold * -1
+        if input_sum + bias > 0:
+            return 1
+        else:
+            return 0    
+        
     def print_network(self):
         for i in range(len(self.layers)):
             for a_neuron in self.layers[i]: 
@@ -159,10 +194,6 @@ class Supervised_Network(Network):
         self.test_iterator = 0
         threshold = 20 #this is like the total power they will need to win
         super().__init__(layout, threshold, canvas)
-        
-        
-        
-    
         
     def recursive_train(self, root):
         '''
@@ -321,7 +352,7 @@ class Single_Neuron_Network(Supervised_Network):
             print("new adjusted weight = " + str(new_weight))
             print("--------------------------------------------")     
                 
-    def calc_output(self): 
+    def calc_output(self):
         '''This method assumes that the inputs of this neuron are already updated'''
         return self.activation_function(self.input_sum(self.layers[0]))
         
