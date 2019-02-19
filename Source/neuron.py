@@ -90,14 +90,12 @@ class Neuron():
             print("output: " + str(self.output))
             print("input value: " + str(input.value))
             print("new adjusted weight = " + str(new_weight))
-            print("--------------------------------------------")     
+            print("--------------------------------------------")
                 
     def calc_output(self): 
         '''This method assumes that the inputs of this neuron are already updated'''
         return self.activation_function(self.input_sum(self.inputs))
         
-        
-    
     @staticmethod
     def input_sum(inputs):
         '''multiplies the inputs by their weights and then adds them together'''

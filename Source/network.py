@@ -3,7 +3,6 @@ Created on Feb 11, 2019
 
 @author: Christian Ransom
 '''
-import neuron
 from abc import ABC, abstractmethod
 from _collections import deque
 import matrix
@@ -46,12 +45,8 @@ class Network():
         for i in range(len(layout)): #the lengths of layout should be how many layers
             
             self.layers.append([]) #initialize the next empty layer
-            layer = []
-            for _ in range(layout[i]): #how many neurons in this layer
-                layer.append(neuron.Neuron(self.threshold))
 
-            self.layers[i] = layer 
-            if 0 < i < len(layout):
+            if 0 < i < len(self.layers[i]):
                 weight_matrix = matrix.Matrix.make_matrix(len(self.layers[i]), len(self.layers[i-1]))
                 self.weights.append(weight_matrix)
                 #Matrix size = how many neurons in prev layer x neurons in current layer
@@ -121,7 +116,7 @@ class Network():
         self.draw_weights()
             
     def draw_weights(self):
-        print(self.weights)
+        #print(self.weights)
         i = 0
         for weight_matrix in self.weights: #which layer of weights
             j = 0
@@ -140,7 +135,8 @@ class Network():
             current_outputs = matrix.Matrix.multiply(self.weights[i], current_outputs)
             current_outputs = self.activation_function(current_outputs)
             #print(current_outputs)
-    
+        print(current_outputs)
+                    
     def activation_function(self, inputs):
         '''
         This function calculates the proper output for the neuron
@@ -148,7 +144,7 @@ class Network():
         @param inputs: a matrix object with only 1 column and a row for each input
         '''
         for i in range(len(inputs.data)):
-            inputs.data[i][0] = self.step_function(inputs.data[i][0])
+            inputs.data[i][0] = self.sigmoid(inputs.data[i][0])
         return inputs
         #return self.step_function(input_sum) #returns 1 or 0
          
@@ -216,27 +212,6 @@ class Supervised_Network(Network):
         
         self.adjust_weights(correct_output)
     
-    def calc_output(self):
-        '''this is implemented iteratively instead of recursively so that the 
-        stack size wont limit the size of the networks. This method uses a 
-        depth first search post order
-        '''
-        stack1 = deque()
-        stack2 = deque() #stack 2 will be filled postorder and processed after the loop
-        
-        stack1.append(self.root)
-        
-        while len(stack1) != 0:
-            temp = stack1.pop()
-            stack2.append(temp)
-            for input in temp.inputs:
-                if type(input) != neuron.Input: #Only add if we haven't hit the bottom of the stack
-                    stack1.append(input)
-        
-        while len(stack2) != 0:
-            temp = stack2.pop() #DFS order is used to calc the output up through the network
-            temp.calc_output()
-    
     def get_state(self):
         '''Updates the values of the network inputs to match the next testing state'''
         state = self.test_matrix[self.test_iterator] #get current state inputs in a list
@@ -277,7 +252,7 @@ class Single_Neuron_Network(Supervised_Network):
         super().__init__(layout, canvas)
     
     def test(self):
-        self.correct_data.append(neuron.Input("fast", 5))
+        '''self.correct_data.append(neuron.Input("fast", 5))
         self.correct_data.append(neuron.Input("strong", 7))
         self.correct_data.append(neuron.Input("skilled", 4))
         self.correct_data.append(neuron.Input("tall", 2))
@@ -296,7 +271,7 @@ class Single_Neuron_Network(Supervised_Network):
         input_data.append(neuron.Input("intelligent", 0))
         #a_neuron = neuron.Neuron(input_data, threshold)
         self.test_matrix = self.test_values(input_data)   
-        self.train(100) 
+        self.train(100) '''
         
     def train(self, iterations):
         '''A training iteration will test all possible input values
