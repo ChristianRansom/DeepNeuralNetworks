@@ -73,7 +73,7 @@ class GUI:
                            [6,7,3,0],
                            [4,5,9,1]])
         test_data = [ 
-                        [ [0, 0], [0,1], [1,0], [1,1] ], 
+                        [ [1, 0], [0,0], [1,0], [1,1] ], 
                         [  [0],    [0],   [0],   [1]  ]          
                     ]
         #print(matrix.Matrix.multiply(a_matrix, b_matrix))

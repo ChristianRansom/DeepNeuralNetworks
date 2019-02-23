@@ -9,6 +9,7 @@ import matrix
 import copy
 from pylint.checkers.variables import overridden_method
 import math
+from idlelib.run import PseudoOutputFile
 
 class Network():
     '''
@@ -48,7 +49,7 @@ class Network():
             for j in range(layout[i]):
                 self.layers[i].append(0)
 
-            if 0 < i < len(self.layers[i]):
+            if 0 < i < len(self.layers):
                 weight_matrix = matrix.Matrix.make_matrix(len(self.layers[i]), len(self.layers[i-1]))
                 self.weights.append(weight_matrix)
                 #Matrix size = how many neurons in prev layer x neurons in current layer
@@ -109,7 +110,7 @@ class Network():
                         self.canvas.create_line(line_start[0] + node_size / 2, line_start[1] + node_size / 2,
                                                 line_finish[0] + node_size / 2, line_finish[1] + node_size / 2)
                         
-                        #Adds weight lables on the lines 
+                        #Adds weight labels on the lines 
                         text_height = line_start[1] + 3 * (line_finish[1] - line_start[1]) / 4 + node_size / 2
                         text = self.canvas.create_text(w - layer_width / 4, text_height, text="0")
                         self.weight_displays[weight_matrix_counter].append(text) #store all text objects
@@ -135,7 +136,9 @@ class Network():
         @param inputs: a matrix object with a single column and a row for each input'''
         
         current_outputs = matrix.transpose(matrix.Matrix([inputs]))
+        print(len(self.weights))
         for i in range(len(self.weights)): #How many weight matrices we have
+            print("weights: " + str(self.weights[i]))
             current_outputs = matrix.multiply(self.weights[i], current_outputs)
             current_outputs = self.activation_function(current_outputs)
         return current_outputs
@@ -217,6 +220,7 @@ class Supervised_Network(Network):
             #print(self.layers)
             self.get_state() #Updates the current input values of the network
             outputs = self.feed_forward(self.layers[0])
+            print("outputs: " + str(outputs))
             self.back_propagate()
             
         #If we've tested all inputs in the test matrix, start over from beginning 
@@ -257,7 +261,6 @@ class Supervised_Network(Network):
         '''Updates the values of the network inputs to match the next testing state'''
         #state is a list of the inputs
         state = self.test_data[0][self.test_iterator] #get current state inputs in a list
-        
         for i in range(len(self.layers[0])): #lengths of input layer
             self.layers[0][i] = state[i]
         
