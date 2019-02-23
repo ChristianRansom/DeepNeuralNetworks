@@ -17,17 +17,18 @@ class Network():
     '''
 
     def __init__(self, layout, threshold, canvas):
-        '''layout: Determines how many layers and how many neurons in each layer.
+        '''
+        @param layout: Determines how many layers and how many neurons in each layer.
         Each element in the list indicates how many neurons are in that layer.
         The first element in layout[] represents how man inputs. The last
         element in layout[-1] represents how many outputs. The other elements
         in layout represent how many neurons in the respective hidden layer
         '''
         
-        #stores the actual neurons in a nested list. Its a list of lists of each layer 
+        #stores the actual neurons output in a nested list. Its a list of lists of each layer 
         self.layers = [] 
         #weights will store a list of Matrix objects
-        self.weights = [] #len(weights) will be len(layers) - 1. It will 
+        self.weights = [] #len(weights) will be len(layers) - 1
         self.canvas = canvas #used for drawing. Expects a tk.Canvas()
         self.threshold = .5
         self.labels = []
@@ -41,38 +42,40 @@ class Network():
         This method builds the network from the bottom up, starting with the
         input layer'''
 
-
         for i in range(len(layout)): #the lengths of layout should be how many layers
             
             self.layers.append([]) #initialize the next empty layer
+            for j in range(layout[i]):
+                self.layers[i].append(0)
 
             if 0 < i < len(self.layers[i]):
                 weight_matrix = matrix.Matrix.make_matrix(len(self.layers[i]), len(self.layers[i-1]))
                 self.weights.append(weight_matrix)
                 #Matrix size = how many neurons in prev layer x neurons in current layer
-                
-        self.draw_network()
-        self.feed_forward(matrix.Matrix([[1], [1], [1]]))
-    
+        self.draw_network()   
+                    
     def train(self, iterations):
         '''
         Eventually I want to be able to start and pause training with events 
         
         1. Get state #initialize inputs 
         2. Get output recursively from the root
-        3. Update weights based on the output
+        3. Calculate the error
+        4. Update weights based on the output
         '''
         self.get_state() #Updates the current input values of the network 
         
         for i in range(iterations):
             self.recursive_train(self.root)
-        
+    
+    
     @abstractmethod
     def get_state(self):
         pass
         
     def draw_network(self):
         self.canvas.update()
+        
         self.canvas.delete("all") #it'd be better to just store each canvas circle object...
         #self.canvas.itemconfigure(self.canvas_frame, width=width, text_height=event.text_height)
         layer_width = self.canvas.winfo_width() / len(self.layers)
@@ -129,13 +132,13 @@ class Network():
     
     def feed_forward(self, inputs):
         '''Loop through layers calculating their outputs and storing the outputs in the neurons
-        @param inputs: a matrix object with only 1 column and a row for each input'''
-        current_outputs = inputs 
+        @param inputs: a matrix object with a single column and a row for each input'''
+        
+        current_outputs = matrix.transpose(matrix.Matrix([inputs]))
         for i in range(len(self.weights)): #How many weight matrices we have
-            current_outputs = matrix.Matrix.multiply(self.weights[i], current_outputs)
+            current_outputs = matrix.multiply(self.weights[i], current_outputs)
             current_outputs = self.activation_function(current_outputs)
-            #print(current_outputs)
-        print(current_outputs)
+        return current_outputs
                     
     def activation_function(self, inputs):
         '''
@@ -164,8 +167,8 @@ class Network():
         
     def print_network(self):
         for i in range(len(self.layers)):
-            for a_neuron in self.layers[i]: 
-                print("Layer " + str(i) + " " + str(a_neuron))
+            for j in range(len(self.layers[i])):
+                print("Layer " + str(i) + ": "+ str(self.layers[i][j]))
 
 
 class Supervised_Network(Network):
@@ -180,51 +183,84 @@ class Supervised_Network(Network):
     only one correct output for every possible set of inputs. 
     '''    
     
-    def __init__(self, layout, canvas):
-        '''This is a theoretical situation where we can use a single Neuron to learn to 
-        recognize which fighters in a game will be strong enough to win a fight. There are
-        many different factors which affect the chance a fighter will win. After lots of 
-        labeled training, the Network should be able to accurately predict whether or not
-        a fighter will win or lose'''
-        self.correct_data = [] #This is the correct output that the network should eventually learn after enough training
+    def __init__(self, layout, test_data, canvas):
+        '''
+        @param canvas: used for drawing
+        @param layout: the network layers 
+        @param test_data: contains a list of lists of inputs and a list of lists of correct output
+            [   
+                [[inputs 1],  [inputs 2],  ... [inputs n]]
+                [[output 1],  [output 2],  ... [output n]]
+            ]
+            e.g. test_data[0][0] should output test_data [1][0]
+        '''
+        
+        self.test_data = test_data #This is the correct output that the network should eventually learn after enough training
         self.test_iterator = 0
         threshold = 20 #this is like the total power they will need to win
         super().__init__(layout, threshold, canvas)
         
-    def recursive_train(self, root):
+    def train(self, iterations = 1):
         '''
-        This method will recurse through the network tree using a depth 
-        first search to do a single training iteration using the current 
-        input state. The weights will only be adjusted once through this 
-        single pass. Input values should already be updated to the current
-        state. 
-        1. Get state #initialize inputs 
-        2. Get output recursively from the root
-        3. Update weights based on the output        
-        ''' 
+        @param correct_data type Matrix: A matrix that maps inputs to outputs with the correct data 
+        @param iterations type integer: how many iterations of training and back propagation 
         
-        #base case: 
-        network_output = self.calc_output()
+        Eventually I want to be able to start and pause training with events 
+        '''
+
+        for i in range(iterations):
+            '''
+            1. Get state and initialize inputs 
+            2. Feed Forward - get output 
+            3. Back propagate - Update weights based on the output
+            '''
+            #print(self.layers)
+            self.get_state() #Updates the current input values of the network
+            outputs = self.feed_forward(self.layers[0])
+            self.back_propagate()
+            
+        #If we've tested all inputs in the test matrix, start over from beginning 
+        if(self.test_iterator >= len(self.test_data[0])):
+            self.test_iterator = 0
+        else: 
+            self.test_iterator = self.test_iterator + 1     
+    
+    def back_propagate(self):
+        '''Uses the error to adjust the weights throughout the network. 
         
-        #calculates the output of a neuron with the correct weights
-        correct_output = self.calc_output(self.correct_data) 
+        Each weight is adjusted proportionately to how much of an effect it had producing the 
+        error. Or how much the error changes with respect to changing the weight
+        
+        https://www.youtube.com/watch?v=zpykfC4VnpM <- explains the backprop formulas I'm using
+        1. Calculate the error of each Neuron in the network
+            1. For Output Layer Neurons: Error = output(1 - output)(output-target)
+            2. For Hidden Layer Neurons: 
+            Error = output(1-output) * SUM  (all (weights from self to next layer * Errors of next layer)
+        2. Use the error to adjust the weights and biases 
+        '''
+        errors = copy.copy(self.layers)
+        #print(errors)
         
         
-        self.adjust_weights(correct_output)
+        
+        pass
+            
+    def calc_error(self, actual, target):
+        ''' Calculates how far off the output of the network is from the correct output 
+        @param actual type Matrix: the calculated output of the network 
+        @param target type Matrix: the correct expected output of the network based on the inputs 
+        '''
+        errors = matrix.subtract(target, actual)
+        return errors
     
     def get_state(self):
         '''Updates the values of the network inputs to match the next testing state'''
-        state = self.test_matrix[self.test_iterator] #get current state inputs in a list
+        #state is a list of the inputs
+        state = self.test_data[0][self.test_iterator] #get current state inputs in a list
         
-        for i in range(len(state)):
-            self.inputs[i].output = state[i]
+        for i in range(len(self.layers[0])): #lengths of input layer
+            self.layers[0][i] = state[i]
         
-        #If we've tested all inputs in the test matrix, start over from beginning 
-        if(self.test_iterator >= len(self.test_matrix)):
-            self.test_iterator = 0
-        else: 
-            self.test_iterator = self.test_iterator + 1
-    
     def test_values(self, inputs):
         '''Generates a matrix of all possible test values'''
         result_matrix = []
@@ -252,7 +288,14 @@ class Single_Neuron_Network(Supervised_Network):
         super().__init__(layout, canvas)
     
     def test(self):
-        '''self.correct_data.append(neuron.Input("fast", 5))
+        '''This is a theoretical situation where we can use a single Neuron to learn to 
+        recognize which fighters in a game will be strong enough to win a fight. There are
+        many different factors which affect the chance a fighter will win. After lots of 
+        labeled training, the Network should be able to accurately predict whether or not
+        a fighter will win or lose'''
+        
+        '''
+        self.correct_data.append(neuron.Input("fast", 5))
         self.correct_data.append(neuron.Input("strong", 7))
         self.correct_data.append(neuron.Input("skilled", 4))
         self.correct_data.append(neuron.Input("tall", 2))
