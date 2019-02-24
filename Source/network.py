@@ -220,10 +220,10 @@ class Supervised_Network(Network):
         self.test_data = test_data #This is the correct output that the network should eventually learn after enough training
         #TODO Error check to make sure test data format matches layout 
         #TODO move test data out to only be passed in as a paramater in the train method
-        self.learning_rate = 0.1
+        self.learning_rate = 2
         self.test_iterator = 0
         self.targets = []
-        threshold = 20 #this is like the total power they will need to win
+        threshold = 1 #this is like the total power they will need to win
         super().__init__(layout, threshold, canvas)
         
     def train(self, iterations = 1):
@@ -240,6 +240,7 @@ class Supervised_Network(Network):
             2. Feed Forward - get output 
             3. Back propagate - Update weights based on the output
             '''
+            print("\n\n +++++++++++++++++++++Traning Round " + str(i + 1) + " ++++++++++++++++++++++")
             #print(self.layers)
             self.get_state() #Updates the current input values of the network
             outputs = self.feed_forward(self.layers[0])
@@ -247,11 +248,11 @@ class Supervised_Network(Network):
             #print("outputs: " + str(outputs))
             self.back_propagate()
             
-        #If we've tested all inputs in the test matrix, start over from beginning 
-        if(self.test_iterator >= len(self.test_data[0])):
-            self.test_iterator = 0
-        else: 
-            self.test_iterator = self.test_iterator + 1     
+            #If we've tested all inputs in the test matrix, start over from beginning 
+            if(self.test_iterator >= len(self.test_data[0]) - 1):
+                self.test_iterator = 0
+            else: 
+                self.test_iterator = self.test_iterator + 1     
     
     def back_propagate(self):
         '''Uses the error_matrix to adjust the weights throughout the network. 
@@ -277,10 +278,10 @@ class Supervised_Network(Network):
         one = matrix.set_one(one)
         
         derived_output = matrix.hadamard(final_outputs, matrix.subtract(one, final_outputs))
-        print("\n-----------------------------------------------")
+        print("\n------------- Begin Back Propagation -------------------")
         print("Inputs: " + str(self.layers[0]))
-        print("Final outputs: " + str(final_outputs))
-        print("self.targets raw: " + str(self.targets))
+        print("Targets: " + str(self.targets))
+        print("Outputs: " + str(final_outputs))
         #print("targets matrix: " + str(matrix.Matrix([self.targets])))
         error_portion = matrix.subtract(final_outputs, matrix.transpose(matrix.Matrix([self.targets])))
         error_matrix = matrix.hadamard(derived_output, error_portion)
@@ -314,13 +315,13 @@ class Supervised_Network(Network):
                 input_sum = input_sum + neuron_output * neuron_output
             
             for neuron in range(len(self.layers[layer])): #loop through each neuron in that layer
-                print("\nErrors " + str(errors))
-                print("Layer " + str(layer))
-                print("neuron " + str(neuron))
-                print("current error " + str(errors[layer][neuron]))
+                #print("\nErrors " + str(errors))
+                #print("Layer " + str(layer))
+                #print("neuron " + str(neuron))
+                #print("current error " + str(errors[layer][neuron]))
                 new_weight = self.learning_rate * errors[layer][neuron] * input_sum
-                print("new weight " + str(new_weight))
-                print("old weights " + str(self.weights[layer-1]))
+                #print("new weight " + str(new_weight))
+                #print("old weights " + str(self.weights[layer-1]))
                 
     def calc_error(self, actual, target):
         ''' Calculates how far off the output of the network is from the correct output 
@@ -335,9 +336,10 @@ class Supervised_Network(Network):
         #state is a list of the inputs
         state = self.test_data[0][self.test_iterator] #get current state inputs in a list
         self.targets = self.test_data[1][self.test_iterator]
+        
         for i in range(len(self.layers[0])): #lengths of input layer
             self.layers[0][i] = state[i]
-        
+
     def test_values(self, inputs):
         '''Generates a matrix of all possible test values'''
         result_matrix = []

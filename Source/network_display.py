@@ -73,7 +73,7 @@ class GUI:
                            [6,7,3,0],
                            [4,5,9,1]])
         test_data = [ 
-                        [ [1, 0], [0,0], [1,0], [1,1] ], 
+                        [ [0, 0], [0,1], [1,0], [1,1] ], 
                         [  [0],    [0],   [0],   [1]  ]          
                     ]
         #print(matrix.Matrix.multiply(a_matrix, b_matrix))
@@ -82,7 +82,7 @@ class GUI:
         #a_network.test()
         a_network = network.Supervised_Network([2, 3, 1], test_data, self.canvas)
         #a_network.print_network()
-        a_network.train(10)
+        a_network.train(100)
         
     def quit_game(self):
         sys.exit(0)
