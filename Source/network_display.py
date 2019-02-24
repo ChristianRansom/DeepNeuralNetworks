@@ -36,7 +36,7 @@ class GUI:
         
         self.root.bind('<Return>', self.start)
         
-        
+        self.start()
         
         self.root.mainloop()
 
@@ -82,7 +82,7 @@ class GUI:
         #a_network.test()
         a_network = network.Supervised_Network([2, 3, 1], test_data, self.canvas)
         #a_network.print_network()
-        a_network.train(1)
+        a_network.train(10)
         
     def quit_game(self):
         sys.exit(0)

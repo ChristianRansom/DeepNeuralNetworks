@@ -12,6 +12,9 @@ class Matrix():
     def __init__(self, data):
         '''The outer list holds a list for each row. Each row list contains the elements
         in that row'''
+        #TODO error checks
+        #TODO accept a single list as an input and turn it into a single row matrix
+        #TODO option to create a matrix giving it only a single column or row 
         self.data = data #the actual lists of lists storing the numbers
 
     @staticmethod
@@ -33,7 +36,7 @@ class Matrix():
             result = result + "[ "
             for col in range(len(self.data[0])):
                 result = result + str(self.data[row][col]) + " "
-            result = result + "]\n"
+            result = result + "]"
         return result
     
 def add(a, b):
@@ -95,4 +98,13 @@ def transpose(a):
                 result.append([]) #creates a new row 
             result[col].append(a.data[row][col])
     return Matrix(result)
+    
+def set_one(a):
+    result = []
+    for row in range(len(a.data)):
+        result.append([])
+        for col in range(len(a.data[0])):
+            result[row].append(1)
+    return Matrix(result)
 
+#TODO Methods that'll return a requested row or column in a list
