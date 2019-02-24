@@ -9,7 +9,7 @@ import matrix
 import copy
 from pylint.checkers.variables import overridden_method
 import math
-from idlelib.run import PseudoOutputFile
+from tkinter import font
 
 class Network():
     '''
@@ -34,6 +34,7 @@ class Network():
         self.threshold = .5
         self.labels = []
         self.weight_displays = []
+        self.output_displays = []
         self.build_network(layout)
 
     def build_network(self, layout):
@@ -78,28 +79,33 @@ class Network():
         self.canvas.update()
         
         self.canvas.delete("all") #it'd be better to just store each canvas circle object...
-        #self.canvas.itemconfigure(self.canvas_frame, width=width, text_height=event.text_height)
+        #self.canvas.itemconfigure(self.canvas_frame, width=width, weight_text_height=event.weight_text_height)
         layer_width = self.canvas.winfo_width() / len(self.layers)
         #this should depend on the max number of nodes in a layer
         node_size = self.canvas.winfo_height() / 10 
         prev_layer = []
         weight_matrix_counter = 0
         self.weight_displays = []
+        self.output_displays = []
         for i in range(len(self.layers)): #the number of layers
             w = layer_width * (i) + layer_width / 2
             counter = 0
             current_layer = []
+            self.output_displays.append([])
             for _ in self.layers[i]: #loop through the neurons in this layer
                 current_layer_size = len(self.layers[i])
                 layer_size = self.canvas.winfo_height() / current_layer_size
                 h = layer_size * (counter) + layer_size / 2
                 counter = counter + 1
-                
+
                 current_layer.append(self.canvas.create_oval(w - node_size / 2, h - node_size / 2, 
                                 w + node_size / 2, h + node_size / 2, 
                                 outline="black", 
-                                fill="blue", width=2))
-                
+                                fill="white", width=2))
+                a_font = font.Font(family='Helvetica', size=14, weight='bold')
+                neuron_text = self.canvas.create_text(w, h, font=a_font, fill="blue", text="0")
+                self.output_displays[i].append(neuron_text)
+
             #Draws the lines between the neurons
             if 0 < i < len(self.layers): 
                 self.weight_displays.append([])
@@ -109,11 +115,10 @@ class Network():
                         line_finish = self.canvas.coords(next_neuron)
                         self.canvas.create_line(line_start[0] + node_size / 2, line_start[1] + node_size / 2,
                                                 line_finish[0] + node_size / 2, line_finish[1] + node_size / 2)
-                        
                         #Adds weight labels on the lines 
-                        text_height = line_start[1] + 3 * (line_finish[1] - line_start[1]) / 4 + node_size / 2
-                        text = self.canvas.create_text(w - layer_width / 4, text_height, text="0")
-                        self.weight_displays[weight_matrix_counter].append(text) #store all text objects
+                        weight_text_height = line_start[1] + 3 * (line_finish[1] - line_start[1]) / 4 + node_size / 2
+                        weight_text = self.canvas.create_text(w - layer_width / 4, weight_text_height, text="0")
+                        self.weight_displays[weight_matrix_counter].append(weight_text) #store all weight_text objects
                 weight_matrix_counter = weight_matrix_counter + 1
                         
             prev_layer = copy.copy(current_layer)
@@ -130,17 +135,31 @@ class Network():
                     self.canvas.itemconfig(self.weight_displays[i][j], text = '%.2f' % weight_matrix.data[row][col])
                     j = j + 1
             i = i + 1
+            
+    def draw_outputs(self):
+        #print("layers: " + str(self.layers))
+        #print("outputs displays: " + str(self.output_displays))
+        for i in range(len(self.output_displays)): #loop each layer
+            for j in range(len(self.output_displays[i])): #loop neurons in this layer
+                #print("TEST: " + str(self.layers[i][j]))
+                temp = '%.2f' % self.layers[i][j]
+                self.canvas.itemconfig(self.output_displays[i][j], text = temp)
     
     def feed_forward(self, inputs):
         '''Loop through layers calculating their outputs and storing the outputs in the neurons
         @param inputs: a matrix object with a single column and a row for each input'''
         
         current_outputs = matrix.transpose(matrix.Matrix([inputs]))
-        print(len(self.weights))
+        #print(len(self.weights))
         for i in range(len(self.weights)): #How many weight matrices we have
-            print("weights: " + str(self.weights[i]))
+            #print("weights: " + str(self.weights[i]))
             current_outputs = matrix.multiply(self.weights[i], current_outputs)
             current_outputs = self.activation_function(current_outputs)
+            #print("current outputs: " + str(matrix.transpose(current_outputs).data))
+            #print("self layers: " + str(self.layers))
+            self.layers[i+1] = matrix.transpose(current_outputs).data[0]
+            
+            
         return current_outputs
                     
     def activation_function(self, inputs):
@@ -220,7 +239,8 @@ class Supervised_Network(Network):
             #print(self.layers)
             self.get_state() #Updates the current input values of the network
             outputs = self.feed_forward(self.layers[0])
-            print("outputs: " + str(outputs))
+            self.draw_outputs()
+            #print("outputs: " + str(outputs))
             self.back_propagate()
             
         #If we've tested all inputs in the test matrix, start over from beginning 
@@ -242,8 +262,15 @@ class Supervised_Network(Network):
             Error = output(1-output) * SUM  (all (weights from self to next layer * Errors of next layer)
         2. Use the error to adjust the weights and biases 
         '''
-        errors = copy.copy(self.layers)
-        #print(errors)
+        errors = copy.copy(self.layers) #initialize a matrix the same size as the network
+        
+        #Calculate the errors for the output layer
+        
+        
+        
+        
+        
+        #Calculate the errors for the rest of the hidden layers
         
         
         
