@@ -17,7 +17,7 @@ class Network():
     been inspired by the brain. Many neurons 
     '''
 
-    def __init__(self, layout, threshold, canvas):
+    def __init__(self, layout, canvas):
         '''
         @param layout: Determines how many layers and how many neurons in each layer.
         Each element in the list indicates how many neurons are in that layer.
@@ -31,7 +31,7 @@ class Network():
         #weights will store a list of Matrix objects
         self.weights = [] #len(weights) will be len(layers) - 1
         self.canvas = canvas #used for drawing. Expects a tk.Canvas()
-        self.threshold = .5
+        self.threshold = 1
         self.labels = []
         self.weight_displays = []
         self.output_displays = []
@@ -220,11 +220,10 @@ class Supervised_Network(Network):
         self.test_data = test_data #This is the correct output that the network should eventually learn after enough training
         #TODO Error check to make sure test data format matches layout 
         #TODO move test data out to only be passed in as a paramater in the train method
-        self.learning_rate = 2
+        self.learning_rate = 10
         self.test_iterator = 0
         self.targets = []
-        threshold = 1 #this is like the total power they will need to win
-        super().__init__(layout, threshold, canvas)
+        super().__init__(layout, canvas)
         
     def train(self, iterations = 1):
         '''
@@ -309,19 +308,14 @@ class Supervised_Network(Network):
             #print("Errors: \n" + str(errors))
         
         #------Update weights based on errors---------- 
-        for layer in range(1, len(self.layers)): #Loop every layer except the first
-            input_sum = 0
-            for neuron_output in self.layers[layer-1]:
-                input_sum = input_sum + neuron_output * neuron_output
-            
-            for neuron in range(len(self.layers[layer])): #loop through each neuron in that layer
-                #print("\nErrors " + str(errors))
-                #print("Layer " + str(layer))
-                #print("neuron " + str(neuron))
-                #print("current error " + str(errors[layer][neuron]))
-                new_weight = self.learning_rate * errors[layer][neuron] * input_sum
-                #print("new weight " + str(new_weight))
-                #print("old weights " + str(self.weights[layer-1]))
+        for weight_matrix in range(len(self.weights)): #loop each weight matrix
+            print("weight_matrix  " + str(self.weights[weight_matrix]))
+            #print("len(self.weights)  " + str(len(self.weights)))
+            for row in range(len(self.weights[weight_matrix].data)): #loop through each row in that matrix. 
+                for col in range(row): #loop through each weight in that row
+                    change = errors[weight_matrix + 1][row] * self.layers[weight_matrix][col]
+                    #print("Change " + str(change))
+                    self.weights[weight_matrix].data[row][col] = self.weights[weight_matrix].data[row][col] - self.learning_rate * change  
                 
     def calc_error(self, actual, target):
         ''' Calculates how far off the output of the network is from the correct output 
