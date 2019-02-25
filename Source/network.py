@@ -10,6 +10,7 @@ import copy
 from pylint.checkers.variables import overridden_method
 import math
 from tkinter import font
+from time import sleep
 
 class Network():
     '''
@@ -31,10 +32,11 @@ class Network():
         #weights will store a list of Matrix objects
         self.weights = [] #len(weights) will be len(layers) - 1
         self.canvas = canvas #used for drawing. Expects a tk.Canvas()
-        self.threshold = 1
         self.labels = []
         self.weight_displays = []
         self.output_displays = []
+        self.biases = []
+        self.default_bais = 1 
         self.build_network(layout)
 
     def build_network(self, layout):
@@ -47,9 +49,10 @@ class Network():
         for i in range(len(layout)): #the lengths of layout should be how many layers
             
             self.layers.append([]) #initialize the next empty layer
+            self.biases.append([])
             for j in range(layout[i]):
                 self.layers[i].append(0)
-
+                self.biases[i].append(self.default_bais)
             if 0 < i < len(self.layers):
                 weight_matrix = matrix.Matrix.make_matrix(len(self.layers[i]), len(self.layers[i-1]))
                 self.weights.append(weight_matrix)
@@ -153,8 +156,12 @@ class Network():
         #print(len(self.weights))
         for i in range(len(self.weights)): #How many weight matrices we have
             #print("weights: " + str(self.weights[i]))
-            current_outputs = matrix.multiply(self.weights[i], current_outputs)
-            current_outputs = self.activation_function(current_outputs)
+            current_outputs = matrix.multiply(self.weights[i], current_outputs) #Gets the sum of the inputs
+            
+            #convert baises into a matrix so we can do math
+            bias_matrix = matrix.transpose(matrix.Matrix([self.biases[i + 1]])) 
+            current_outputs = matrix.add(current_outputs, bias_matrix)
+            current_outputs = self.activation_function(current_outputs) 
             #print("current outputs: " + str(matrix.transpose(current_outputs).data))
             #print("self layers: " + str(self.layers))
             self.layers[i+1] = matrix.transpose(current_outputs).data[0]
@@ -220,7 +227,7 @@ class Supervised_Network(Network):
         self.test_data = test_data #This is the correct output that the network should eventually learn after enough training
         #TODO Error check to make sure test data format matches layout 
         #TODO move test data out to only be passed in as a paramater in the train method
-        self.learning_rate = 10
+        self.learning_rate = 0.1
         self.test_iterator = 0
         self.targets = []
         super().__init__(layout, canvas)
@@ -252,6 +259,10 @@ class Supervised_Network(Network):
                 self.test_iterator = 0
             else: 
                 self.test_iterator = self.test_iterator + 1     
+                
+            self.draw_weights()
+            self.draw_outputs()
+            #sleep(.05)
     
     def back_propagate(self):
         '''Uses the error_matrix to adjust the weights throughout the network. 
@@ -283,6 +294,8 @@ class Supervised_Network(Network):
         print("Outputs: " + str(final_outputs))
         #print("targets matrix: " + str(matrix.Matrix([self.targets])))
         error_portion = matrix.subtract(final_outputs, matrix.transpose(matrix.Matrix([self.targets])))
+        print("error portion " + str(error_portion))
+        print("derived_output " + str(derived_output))
         error_matrix = matrix.hadamard(derived_output, error_portion)
         #print("Start Errors: \n" + str(errors))
         errors[-1] = matrix.transpose(error_matrix).data[0]
@@ -305,7 +318,7 @@ class Supervised_Network(Network):
             #Calculates how much each weight contributed to the next layers error_matrix portions
             error_matrix = matrix.hadamard(derived_output, error_portion)
             errors[i] = matrix.transpose(error_matrix).data[0]
-            #print("Errors: \n" + str(errors))
+            print("Errors: \n" + str(errors))
         
         #------Update weights based on errors---------- 
         for weight_matrix in range(len(self.weights)): #loop each weight matrix
@@ -314,9 +327,13 @@ class Supervised_Network(Network):
             for row in range(len(self.weights[weight_matrix].data)): #loop through each row in that matrix. 
                 for col in range(row): #loop through each weight in that row
                     change = errors[weight_matrix + 1][row] * self.layers[weight_matrix][col]
+                    print("change " + str(change))
+                    self.biases[weight_matrix + 1][row] =  self.biases[weight_matrix + 1][row] * change
                     #print("Change " + str(change))
                     self.weights[weight_matrix].data[row][col] = self.weights[weight_matrix].data[row][col] - self.learning_rate * change  
                 
+                
+    
     def calc_error(self, actual, target):
         ''' Calculates how far off the output of the network is from the correct output 
         @param actual type Matrix: the calculated output of the network 
