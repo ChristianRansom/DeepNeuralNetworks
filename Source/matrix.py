@@ -107,4 +107,10 @@ def set_one(a):
             result[row].append(1)
     return Matrix(result)
 
+def sum(a):
+    result = 0
+    for row in range(len(a.data)):
+        for col in range(len(a.data[0])):
+            results = result + a.data[row][col]
+    return result
 #TODO Methods that'll return a requested row or column in a list
