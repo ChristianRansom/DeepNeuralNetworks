@@ -223,7 +223,7 @@ class Supervised_Network(Network):
             ]
             e.g. test_data[0][0] should output test_data [1][0]
         '''
-        
+        #TODO change test_data to simlpy use two different lists of one input and one expected outputs 
         self.test_data = test_data #This is the correct output that the network should eventually learn after enough training
         #TODO Error check to make sure test data format matches layout 
         #TODO move test data out to only be passed in as a paramater in the train method
@@ -294,9 +294,10 @@ class Supervised_Network(Network):
         print("Outputs: " + str(final_outputs))
         #print("targets matrix: " + str(matrix.Matrix([self.targets])))
         error_portion = matrix.subtract(final_outputs, matrix.transpose(matrix.Matrix([self.targets])))
-        print("error portion " + str(error_portion))
-        print("derived_output " + str(derived_output))
-        error_matrix = matrix.hadamard(derived_output, error_portion)
+        #print("error portion " + str(error_portion))
+        #print("derived_output " + str(derived_output))
+        #error_matrix = matrix.hadamard(derived_output, error_portion)
+        error_matrix = error_portion 
         #print("Start Errors: \n" + str(errors))
         errors[-1] = matrix.transpose(error_matrix).data[0]
         #print("Errors: \n" + str(errors))
@@ -317,23 +318,28 @@ class Supervised_Network(Network):
             derived_output = matrix.hadamard(this_layer_output, matrix.subtract(one, this_layer_output))
             #Calculates how much each weight contributed to the next layers error_matrix portions
             error_matrix = matrix.hadamard(derived_output, error_portion)
+            error_matrix = error_portion #TEMPORARY line for testing
             errors[i] = matrix.transpose(error_matrix).data[0]
             print("Errors: \n" + str(errors))
         
         #------Update weights based on errors---------- 
         for weight_matrix in range(len(self.weights)): #loop each weight matrix
             print("weight_matrix  " + str(self.weights[weight_matrix]))
-            #print("len(self.weights)  " + str(len(self.weights)))
-            for row in range(len(self.weights[weight_matrix].data)): #loop through each row in that matrix. 
-                for col in range(row): #loop through each weight in that row
-                    change = errors[weight_matrix + 1][row] * self.layers[weight_matrix][col]
+            for row in range(len(self.weights[weight_matrix].data)): #loop through each row in that matrix. Each row is all the weights connected to a neuron
+                bias = self.biases[weight_matrix + 1][row]
+                print("bias " + str(bias))
+                for col in range(len(self.weights[weight_matrix].data[row])): #loop through each weight in that row
+                    
+                    #Change is error * inputs of previous layer. We need the sum of all the inputs of the previous layer and the bias
+                    previous_layer_outputs = matrix.multiply(self.weights[row], matrix.Matrix([self.layers[row]])) #Gets the sum of the inputs
+                    previous_layer_outputs = matrix.sum(previous_layer_outputs) + bias
+                    print("previous_layer_output_sum " + str(previous_layer_outputs))
+                    change = errors[weight_matrix + 1][row]  * self.learning_rate
                     print("change " + str(change))
-                    self.biases[weight_matrix + 1][row] =  self.biases[weight_matrix + 1][row] * change
-                    #print("Change " + str(change))
-                    self.weights[weight_matrix].data[row][col] = self.weights[weight_matrix].data[row][col] - self.learning_rate * change  
-                
-                
-    
+                    self.weights[weight_matrix].data[row][col] = self.weights[weight_matrix].data[row][col] - change * previous_layer_outputs
+                    
+                self.biases[weight_matrix + 1][row] = self.biases[weight_matrix + 1][row] - change 
+
     def calc_error(self, actual, target):
         ''' Calculates how far off the output of the network is from the correct output 
         @param actual type Matrix: the calculated output of the network 
