@@ -36,15 +36,21 @@ class GUI:
         
         self.root.bind('<Return>', self.start)
         
+        '''
         test_data = [ 
                         [ [1,0,1,0],  [0,1,1,0], [0,1,0,1], [1,0,0,1] ], 
                         [  [0],    [1],   [0],   [1]  ]          
                     ]
+        self.a_network = network.Supervised_Network([4, 4, 1], test_data, self.canvas)
+        '''
+        test_inputs = [[0,1],  [1,0], [1,1], [0,0]]
+        test_output = [ [1],    [1],   [0],   [0] ]
+        self.a_network = network.Supervised_Network([2, 2, 1], test_inputs, test_output, self.canvas)
+        
         #print(matrix.Matrix.multiply(a_matrix, b_matrix))
         
         #a_network = network.Single_Neuron_Network(self.canvas)
         #a_network.test()
-        self.a_network = network.Supervised_Network([4, 4, 1], test_data, self.canvas)
         #a_network.print_network()
         self.start()
         

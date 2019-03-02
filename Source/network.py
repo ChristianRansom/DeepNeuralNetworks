@@ -210,27 +210,26 @@ class Supervised_Network(Network):
     wrong output, the network does some weight adjustment to produce 
     more accurate predictions.This is a kind of regression learning.
     This kind of learning is useful for when there is always one and 
-    only one correct output for every possible set of inputs. 
+    only one correct output for every possible set of input. 
     '''    
     
-    def __init__(self, layout, test_data, canvas):
+    def __init__(self, layout, test_input, test_output, canvas):
         '''
-        @param canvas: used for drawing
-        @param layout: the network layers 
-        @param test_data: contains a list of lists of inputs and a list of lists of correct output
-            [   
-                [[inputs 1],  [inputs 2],  ... [inputs n]]
-                [[output 1],  [output 2],  ... [output n]]
-            ]
-            e.g. test_data[0][0] should output test_data [1][0]
+        :param layout: a list whose length is the number of layers in the network and each 
+        value in the list is how many neurons in that layer
+        :param test_input: contains a list of lists of inputs to test
+        :param test_output: contains a list of correct outputs that corresponds to the inputs
+        :param canvas: used for drawing
         '''
-        #TODO change test_data to simlpy use two different lists of one input and one expected outputs 
-        self.test_data = test_data #This is the correct output that the network should eventually learn after enough training
         #TODO Error check to make sure test data format matches layout 
         #TODO move test data out to only be passed in as a paramater in the train method
-        self.learning_rate = 5
+        
+        self.test_input = test_input #This is the correct output that the network should eventually learn after enough training
+        self.test_output = test_output
+        self.learning_rate = 1
         self.test_iterator = 0
         self.targets = []
+        
         super().__init__(layout, canvas)
         
     def train(self, iterations = 1):
@@ -256,11 +255,10 @@ class Supervised_Network(Network):
             self.back_propagate()
             
             #If we've tested all inputs in the test matrix, start over from beginning 
-            if(self.test_iterator >= len(self.test_data[0]) - 1):
+            if(self.test_iterator >= len(self.test_input) - 1):
                 self.test_iterator = 0
             else: 
                 self.test_iterator = self.test_iterator + 1     
-            self.canvas.update()
             self.draw_weights()
             self.draw_outputs()
             #sleep(.05)
@@ -277,7 +275,7 @@ class Supervised_Network(Network):
             2. For all other Hidden Layers: SUM  (each (weights from self to next layer * Errors of next layer)           
         
         2. Use the errors to adjust the weights and biases 
-            weight change: learning rate * error * next_layer.output(1-next_layer.output) * output
+            weight change: learning rate * error * output(1 - output) * input
         '''        
         print("\n------------- Begin Back Propagation -------------------")
         print("Inputs: " + str(self.layers[0]))
@@ -337,50 +335,17 @@ class Supervised_Network(Network):
 
             #Calculates how much each weight contributed to the  next layers error_matrix portions
             weight_changes = matrix.hadamard(weight_changes, derived_output)
+            print("biases " + str(self.biases))
+            print("weight_changes " + str(weight_changes.data))
+            bias_changes = matrix.subtract(matrix.Matrix([self.biases[i]]), matrix.transpose(weight_changes)) 
+            self.biases[i] = bias_changes.data[0]
+            print("bias changes " + str(weight_changes.data))
             print("Layer input " + str(self.layers[i-1]))
             weight_changes = matrix.multiply(weight_changes, matrix.Matrix([self.layers[i - 1]]))
             print("Errors: \n" + str(errors))
             print("weight_changes " + str(weight_changes.data))
             
             self.weights[i - 1] = matrix.subtract(self.weights[i - 1], weight_changes)
-        
-        #self.adjust_weights(errors, i, one, derived_output) 
-
-
-    def adjust_weights(self, errors, i, one, derived_output):
-        #------Update weights based on errors----------
-        for weight_matrix in range(len(self.weights)): #loop each weight matrix
-            '''weight change: learning rate * error * next_layer.output(1-next_layer.output) * output
-    
-              matrix          scalar      vector   
-    
-         
-    
-        
-    
-        '''
-            print("weight_matrix  " + str(self.weights[weight_matrix]))
-            next_layer_output_matrix = matrix.transpose(matrix.Matrix([self.layers[weight_matrix + 1]]))
-            print("next_layer_output_matrix " + str(next_layer_output_matrix))
-            one = copy.copy(next_layer_output_matrix)
-            one = matrix.set_one(one)
-            #derived_output = matrix.multiply(next_layer_output_matrix, matrix.subtract(one, next_layer_output_matrix))
-            #errors[i+1] is the errors for this layer
-            print("derived_output " + str(derived_output))
-            weight_changes = errors[i + 1]
-            for row in range(len(self.weights[weight_matrix].data)): #loop through each row in that matrix. Each row is all the weights connected to a neuron
-                bias = self.biases[weight_matrix + 1][row]
-            #print("bias " + str(bias))
-                for col in range(len(self.weights[weight_matrix].data[row])): #loop through each weight in that row
-                    #Change is error * inputs of previous layer. We need the sum of all the inputs of the previous layer and the bias
-                    previous_layer_outputs = matrix.multiply(self.weights[row], matrix.Matrix([self.layers[row]])) #Gets the sum of the inputs
-                    previous_layer_outputs = matrix.sum(previous_layer_outputs) + bias
-                    #print("previous_layer_output_sum " + str(previous_layer_outputs))
-                    change = errors[weight_matrix + 1][row] * self.learning_rate * -1
-                    #print("change " + str(change))
-                    self.weights[weight_matrix].data[row][col] = self.weights[weight_matrix].data[row][col] + change * previous_layer_outputs
-                
-                self.biases[weight_matrix + 1][row] = self.biases[weight_matrix + 1][row] + change
 
     def calc_error(self, actual, target):
         ''' Calculates how far off the output of the network is from the correct output 
@@ -393,8 +358,8 @@ class Supervised_Network(Network):
     def get_state(self):
         '''Updates the values of the network inputs to match the next testing state'''
         #state is a list of the inputs
-        state = self.test_data[0][self.test_iterator] #get current state inputs in a list
-        self.targets = self.test_data[1][self.test_iterator]
+        state = self.test_input[self.test_iterator] #get current state inputs in a list
+        self.targets = self.test_output[self.test_iterator]
         
         for i in range(len(self.layers[0])): #lengths of input layer
             self.layers[0][i] = state[i]
