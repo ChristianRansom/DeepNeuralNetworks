@@ -10,7 +10,7 @@ build as much as I can from scratch. However, since I'm starting out without rea
 learning knowledge, its difficult for me to plan out my class structure and plan out a clear end goal. 
 I'm probably going to be producing many different versions and doing a lot of refractoring. 
 
-![Image of a Network Example](https://imgur.com/OOgsbPQ)
+![Image of a Network Example](https://i.imgur.com/OOgsbPQ.png)
 
 Progress:
 This network is capable of solving the XOR problem with the ability to have multiple hidden layers and through the use of back propagation. It is capable of regression and classification. The next step is to work towards reinforcement learning. 
