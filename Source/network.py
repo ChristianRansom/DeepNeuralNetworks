@@ -213,7 +213,7 @@ class Supervised_Network(Network):
     only one correct output for every possible set of input. 
     '''    
     
-    def __init__(self, layout, test_input, test_output, canvas):
+    def __init__(self, layout, canvas):
         '''
         :param layout: TYPE list which length is the number of layers in the network and each 
         value in the list is how many neurons in that layer
@@ -223,24 +223,26 @@ class Supervised_Network(Network):
         '''
         #TODO move test data out to only be passed in as a paramater in the train method
         
-        self.test_input = test_input #This is the correct output that the network should eventually learn after enough training
-        self.test_output = test_output
+        self.test_input = None #This is the correct output that the network should eventually learn after enough training
+        self.test_output = None
         self.learning_rate = 1
         self.test_iterator = 0
         self.targets = []
 
-        if layout[0] != len(test_input[0]) or layout[-1] != len(test_output[0]):
-            raise Exception('The test data does not match the network layout. ')
-        
         super().__init__(layout, canvas)
         
-    def train(self, iterations = 1):
+    def train(self, test_input, test_output, iterations = 1):
         '''
         @param correct_data type Matrix: A matrix that maps inputs to outputs with the correct data 
         @param iterations type integer: how many iterations of training and back propagation 
         
         Eventually I want to be able to start and pause training with events 
         '''
+        if len(self.layers[0]) != len(test_input[0]) or len(self.layers[-1]) != len(test_output[0]):
+            raise Exception('The test data does not match the network layout. ')
+        self.test_input = test_input #This is the correct output that the network should eventually learn after enough training
+        self.test_output = test_output
+        
         for i in range(iterations):
             '''
             1. Get state and initialize inputs 
@@ -347,10 +349,8 @@ class Single_Neuron_Network(Supervised_Network):
     propagation
     '''
     
-    def __init__(self, canvas):
-        layout = [5, 1] #5 inputs 1 output
-        self.test_matrix = []
-        self.correct_data = []
+    def __init__(self, inputs, canvas):
+        layout = [inputs, 1] #5 inputs 1 output
         super().__init__(layout, canvas)
     
     def test(self):
@@ -381,6 +381,9 @@ class Single_Neuron_Network(Supervised_Network):
         #a_neuron = neuron.Neuron(input_data, threshold)
         self.test_matrix = self.test_values(input_data)   
         self.train(100) '''
+        test_inputs = [[0, 0, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0], [0, 0, 1, 1], [0, 1, 0, 0], [0, 1, 0, 1], [0, 1, 1, 0], [0, 1, 1, 1], [1, 0, 0, 0], [1, 0, 0, 1], [1, 0, 1, 0], [1, 0, 1, 1], [1, 1, 0, 0], [1, 1, 0, 1], [1, 1, 1, 0], [1, 1, 1, 1]]
+
+        
         
     def train(self, iterations):
         '''A training iteration will test all possible input values

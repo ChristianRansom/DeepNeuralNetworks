@@ -43,11 +43,8 @@ class GUI:
                     ]
         self.a_network = network.Supervised_Network([4, 4, 1], test_data, self.canvas)
         '''
-        matrix.Matrix([[0],[0],[0]])
-        
-        test_inputs = [[0,1],  [1,0], [1,1], [0,0]]
-        test_output = [ [1],    [1],   [0],   [0] ]
-        self.a_network = network.Supervised_Network([2, 2, 1], test_inputs, test_output, self.canvas)
+
+        self.a_network = network.Supervised_Network([2, 2, 1], self.canvas)
         
         #print(matrix.Matrix.multiply(a_matrix, b_matrix))
         
@@ -63,10 +60,27 @@ class GUI:
     #need args* paramater because its passed by tk for the input types of frames
     def start(self, *args):
         self.a_network.draw_network()
-        self.a_network.train(1001)
+        
+        test_inputs = [[0,1],  [1,0], [1,1], [0,0]]
+        test_output = [ [1],    [1],   [0],   [0] ]
+        self.a_network.train(test_inputs, test_output, 1)
         
     def quit_game(self):
         sys.exit(0)
+
+    def test_values(self, inputs):
+        '''Generates a matrix of all possible test values'''
+        result_matrix = []
+        #Counts in binary numbers and adds them then splits the digits to make the matrix
+        for i in range(len(inputs) * len(inputs)):
+            row = []
+            #Used for how many digits the binaries should have
+            format_string = "0" + str(len(inputs)) + "b"
+            binary_string = format(i, format_string)
+            for ch in str(binary_string):
+                row.append(int(ch))
+            result_matrix.append(row)
+        return result_matrix
 
 class Window(Frame):    
   
@@ -102,6 +116,8 @@ class Window(Frame):
         
         canvas.pack(fill=BOTH, expand=1)
 
+    
+    
 if __name__ == '__main__':
     GUI()        
      
