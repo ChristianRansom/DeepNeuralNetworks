@@ -111,6 +111,15 @@ def sum(a):
     result = 0
     for row in range(len(a.data)):
         for col in range(len(a.data[0])):
-            results = result + a.data[row][col]
+            result = result + a.data[row][col]
     return result
+
+def scalar(a, scalar):
+    result = []
+    for row in range(len(a.data)):
+        result.append([])
+        for col in range(len(a.data[0])):
+            result[row].append(a.data[row][col] * scalar)
+    return Matrix(result)
+
 #TODO Methods that'll return a requested row or column in a list

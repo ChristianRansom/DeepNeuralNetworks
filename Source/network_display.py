@@ -36,6 +36,16 @@ class GUI:
         
         self.root.bind('<Return>', self.start)
         
+        test_data = [ 
+                        [ [1,0,1,0],  [0,1,1,0], [0,1,0,1], [1,0,0,1] ], 
+                        [  [0],    [1],   [0],   [1]  ]          
+                    ]
+        #print(matrix.Matrix.multiply(a_matrix, b_matrix))
+        
+        #a_network = network.Single_Neuron_Network(self.canvas)
+        #a_network.test()
+        self.a_network = network.Supervised_Network([4, 4, 1], test_data, self.canvas)
+        #a_network.print_network()
         self.start()
         
         self.root.mainloop()
@@ -44,45 +54,7 @@ class GUI:
     #need args* paramater because its passed by tk for the input types of frames
     def start(self, *args):
         
-        self.canvas.update()
-        #self.canvas.itemconfigure(self.canvas_frame, width=width, height=event.height)
-        h = self.canvas.winfo_height()
-        w = self.canvas.winfo_width()
-        mid_point = [w / 2, h / 2]
-        node_size = h / 10
-        
-
-        #self.canvas.create_rectangle(0, 0, w, h, 
-        #    outline="#f11", fill="#1f1", width=2)
-        
-
-        
-        a_matrix = matrix.Matrix([[3, 0, 0],
-                                  [0, 0, 0],
-                                  [0, 0, 3]])
-        
-        
-        b_matrix = matrix.Matrix([[1, 1, 1],
-                                  [1, 1, 1],
-                                  [1, 1, 1]])
-        X = matrix.Matrix([[12,7,3],
-                           [4 ,5,6],
-                           [7 ,8,9]])
-        # 3x4 matrix
-        Y = matrix.Matrix([[5,8,1,2],
-                           [6,7,3,0],
-                           [4,5,9,1]])
-        test_data = [ 
-                        [ [0, 0], [0,1], [1,0], [1,1] ], 
-                        [  [0],    [0],   [0],   [1]  ]          
-                    ]
-        #print(matrix.Matrix.multiply(a_matrix, b_matrix))
-        
-        #a_network = network.Single_Neuron_Network(self.canvas)
-        #a_network.test()
-        a_network = network.Supervised_Network([2, 3, 1], test_data, self.canvas)
-        #a_network.print_network()
-        a_network.train(100)
+        self.a_network.train(1001)
         
     def quit_game(self):
         sys.exit(0)
