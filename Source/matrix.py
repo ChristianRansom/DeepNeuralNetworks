@@ -11,11 +11,18 @@ class Matrix():
 
     def __init__(self, data):
         '''The outer list holds a list for each row. Each row list contains the elements
-        in that row'''
+        in that row
+        :param data: a list of lists where each inner list is a row in the matrix
+        '''
         #TODO error checks
         #TODO accept a single list as an input and turn it into a single row matrix
         #TODO option to create a matrix giving it only a single column or row 
-        self.data = data #the actual lists of lists storing the numbers
+        
+        if isinstance(data[0], list):
+            self.data = data #the actual lists of lists storing the numbers
+        else: 
+            self.data = [data] #a single row matrix
+        
 
     @staticmethod
     def make_matrix(rows, cols):

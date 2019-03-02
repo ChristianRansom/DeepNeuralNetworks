@@ -43,6 +43,8 @@ class GUI:
                     ]
         self.a_network = network.Supervised_Network([4, 4, 1], test_data, self.canvas)
         '''
+        matrix.Matrix([[0],[0],[0]])
+        
         test_inputs = [[0,1],  [1,0], [1,1], [0,0]]
         test_output = [ [1],    [1],   [0],   [0] ]
         self.a_network = network.Supervised_Network([2, 2, 1], test_inputs, test_output, self.canvas)

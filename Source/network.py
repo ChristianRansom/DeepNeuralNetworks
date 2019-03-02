@@ -221,7 +221,6 @@ class Supervised_Network(Network):
         :param test_output: TYPE list of correct outputs that corresponds to the inputs
         :param canvas: used for drawing
         '''
-        #TODO Error check to make sure test data format matches layout 
         #TODO move test data out to only be passed in as a paramater in the train method
         
         self.test_input = test_input #This is the correct output that the network should eventually learn after enough training
@@ -288,10 +287,10 @@ class Supervised_Network(Network):
         
         #Calculate the errors for the output layer
         final_outputs = self.layers[-1]
-        final_outputs = matrix.Matrix([final_outputs])
+        final_outputs = matrix.Matrix(final_outputs)
         
         #print("targets matrix: " + str(matrix.Matrix([self.targets])))
-        error_portions = matrix.subtract(final_outputs, matrix.Matrix([self.targets]))
+        error_portions = matrix.subtract(final_outputs, matrix.Matrix(self.targets))
         #print("error portion " + str(error_portions))
         #print("error portion " + str(error_portions))
         #print("derived_output " + str(derived_output))
@@ -320,11 +319,11 @@ class Supervised_Network(Network):
             '''weight change: learning rate * error * output(1-output) * input to this layer'''
             
             #learning rate * layer errors
-            error_vector = matrix.transpose(matrix.Matrix([errors[i]]))
+            error_vector = matrix.transpose(matrix.Matrix(errors[i]))
             weight_changes = matrix.scalar(error_vector, self.learning_rate)
             
             #Convert layer output into a matrix
-            layer_output = matrix.transpose(matrix.Matrix([self.layers[i]]))
+            layer_output = matrix.transpose(matrix.Matrix(self.layers[i]))
             #creates a matrix of ones to help calculate the derivative 
             one = matrix.set_one(copy.copy(layer_output))
             #print("one " + str(one))
@@ -339,11 +338,11 @@ class Supervised_Network(Network):
             weight_changes = matrix.hadamard(weight_changes, derived_output)
             print("biases " + str(self.biases))
             print("weight_changes " + str(weight_changes.data))
-            bias_changes = matrix.subtract(matrix.Matrix([self.biases[i]]), matrix.transpose(weight_changes)) 
+            bias_changes = matrix.subtract(matrix.Matrix(self.biases[i]), matrix.transpose(weight_changes)) 
             self.biases[i] = bias_changes.data[0]
             print("bias changes " + str(weight_changes.data))
             print("Layer input " + str(self.layers[i-1]))
-            weight_changes = matrix.multiply(weight_changes, matrix.Matrix([self.layers[i - 1]]))
+            weight_changes = matrix.multiply(weight_changes, matrix.Matrix(self.layers[i - 1]))
             print("Errors: \n" + str(errors))
             print("weight_changes " + str(weight_changes.data))
             
