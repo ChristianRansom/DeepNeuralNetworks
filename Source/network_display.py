@@ -52,6 +52,7 @@ class GUI:
         #a_network = network.Single_Neuron_Network(self.canvas)
         #a_network.test()
         #a_network.print_network()
+        self.a_network.draw_network()
         self.start()
         
         self.root.mainloop()
@@ -59,7 +60,7 @@ class GUI:
         
     #need args* paramater because its passed by tk for the input types of frames
     def start(self, *args):
-        
+        self.a_network.draw_network()
         self.a_network.train(1001)
         
     def quit_game(self):

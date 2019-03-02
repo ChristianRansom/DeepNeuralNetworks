@@ -215,10 +215,10 @@ class Supervised_Network(Network):
     
     def __init__(self, layout, test_input, test_output, canvas):
         '''
-        :param layout: a list whose length is the number of layers in the network and each 
+        :param layout: TYPE list which length is the number of layers in the network and each 
         value in the list is how many neurons in that layer
-        :param test_input: contains a list of lists of inputs to test
-        :param test_output: contains a list of correct outputs that corresponds to the inputs
+        :param test_input: TYPE list of the inputs to test
+        :param test_output: TYPE list of correct outputs that corresponds to the inputs
         :param canvas: used for drawing
         '''
         #TODO Error check to make sure test data format matches layout 
@@ -229,6 +229,9 @@ class Supervised_Network(Network):
         self.learning_rate = 1
         self.test_iterator = 0
         self.targets = []
+
+        if layout[0] != len(test_input[0]) or layout[-1] != len(test_output[0]):
+            raise Exception('The test data does not match the network layout. ')
         
         super().__init__(layout, canvas)
         
@@ -239,7 +242,6 @@ class Supervised_Network(Network):
         
         Eventually I want to be able to start and pause training with events 
         '''
-        self.draw_network()
         for i in range(iterations):
             '''
             1. Get state and initialize inputs 
