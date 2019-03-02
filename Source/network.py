@@ -263,7 +263,16 @@ class Supervised_Network(Network):
             self.draw_weights()
             self.draw_outputs()
             #sleep(.05)
-    
+
+    def get_state(self):
+        '''Updates the values of the network inputs to match the next testing state'''
+        #state is a list of the inputs
+        state = self.test_input[self.test_iterator] #get current state inputs in a list
+        self.targets = self.test_output[self.test_iterator]
+        
+        for i in range(len(self.layers[0])): #lengths of input layer
+            self.layers[0][i] = state[i]
+            
     def back_propagate(self):
         '''Uses the error_matrix to adjust the weights throughout the network. 
         
@@ -283,35 +292,8 @@ class Supervised_Network(Network):
         print("Targets: " + str(self.targets))
         print("Outputs: " + str(self.layers[-1]))
         
-        errors = copy.copy(self.layers) #initialize a matrix the same size as the network
         
-        #Calculate the errors for the output layer
-        final_outputs = self.layers[-1]
-        final_outputs = matrix.Matrix(final_outputs)
-        
-        #print("targets matrix: " + str(matrix.Matrix([self.targets])))
-        error_portions = matrix.subtract(final_outputs, matrix.Matrix(self.targets))
-        #print("error portion " + str(error_portions))
-        #print("error portion " + str(error_portions))
-        #print("derived_output " + str(derived_output))
-        #error_matrix = matrix.hadamard(derived_output, error_portions)
-        #print("Start Errors: \n" + str(errors))
-        errors[-1] = matrix.transpose(error_portions).data[0]
-        #print("Errors: \n" + str(errors))
-
-        print("weights " + str(self.weights))
-        
-        
-        #--------Calculate the errors for the rest of the hidden layers---------        
-        #Move backwards through the list starting at last hidden layer
-        for i in range(len(self.layers) - 2, -1, -1): 
-            
-            #This layer error_matrix depends on its output layers error_matrix multiplied by the connecting weights
-            #print("i : " + str(i))
-            #print(" weight length " + str(len(self.weights)))
-            error_portions = matrix.multiply(matrix.transpose(self.weights[i]), error_portions)
-            #print("error portion " + str(error_portions))
-            errors[i] = matrix.transpose(error_portions).data[0]
+        errors = self.calc_errors()
 
         #---------Calculate the weight changes needed for each weight matrix------
         #Move backwards through the layers starting at the output layer and the weights attached to it
@@ -326,58 +308,38 @@ class Supervised_Network(Network):
             layer_output = matrix.transpose(matrix.Matrix(self.layers[i]))
             #creates a matrix of ones to help calculate the derivative 
             one = matrix.set_one(copy.copy(layer_output))
-            #print("one " + str(one))
             temp =  matrix.subtract(one, layer_output)
-            #print("one - next layer " + str(temp))
             #Gets the derivative of the output of this layer
             derived_output = matrix.hadamard(layer_output, temp)
             
-            print("derived_output " + str(derived_output))
 
             #Calculates how much each weight contributed to the  next layers error_matrix portions
             weight_changes = matrix.hadamard(weight_changes, derived_output)
-            print("biases " + str(self.biases))
-            print("weight_changes " + str(weight_changes.data))
             bias_changes = matrix.subtract(matrix.Matrix(self.biases[i]), matrix.transpose(weight_changes)) 
-            self.biases[i] = bias_changes.data[0]
-            print("bias changes " + str(weight_changes.data))
-            print("Layer input " + str(self.layers[i-1]))
             weight_changes = matrix.multiply(weight_changes, matrix.Matrix(self.layers[i - 1]))
-            print("Errors: \n" + str(errors))
-            print("weight_changes " + str(weight_changes.data))
+            #print("Errors: \n" + str(errors))
+            #print("weight_changes " + str(weight_changes.data))
             
+            self.biases[i] = bias_changes.data[0]
             self.weights[i - 1] = matrix.subtract(self.weights[i - 1], weight_changes)
-
-    def calc_error(self, actual, target):
-        ''' Calculates how far off the output of the network is from the correct output 
-        @param actual type Matrix: the calculated output of the network 
-        @param target type Matrix: the correct expected output of the network based on the inputs 
-        '''
-        errors = matrix.subtract(target, actual)
-        return errors
     
-    def get_state(self):
-        '''Updates the values of the network inputs to match the next testing state'''
-        #state is a list of the inputs
-        state = self.test_input[self.test_iterator] #get current state inputs in a list
-        self.targets = self.test_output[self.test_iterator]
+    def calc_errors(self):
+        errors = copy.copy(self.layers) #initialize a matrix the same size as the network
+    #Calculate the errors for the output layer
+        final_outputs = self.layers[-1]
+        final_outputs = matrix.Matrix(final_outputs)
+        error_portions = matrix.subtract(final_outputs, matrix.Matrix(self.targets))
+        errors[-1] = matrix.transpose(error_portions).data[0]
+        #print("weights " + str(self.weights))
+    #--------Calculate the errors for the rest of the hidden layers---------
+    #Move backwards through the list starting at last hidden layer
+        for i in range(len(self.layers) - 2, -1, -1):
+            #This layer error_matrix depends on its output layers error_matrix multiplied by the connecting weights
+            error_portions = matrix.multiply(matrix.transpose(self.weights[i]), error_portions)
+            #print("error portion " + str(error_portions))
+            errors[i] = matrix.transpose(error_portions).data[0]
         
-        for i in range(len(self.layers[0])): #lengths of input layer
-            self.layers[0][i] = state[i]
-
-    def test_values(self, inputs):
-        '''Generates a matrix of all possible test values'''
-        result_matrix = []
-        #Counts in binary numbers and adds them then splits the digits to make the matrix
-        for i in range(len(inputs) * len(inputs)):
-            row = []
-            #Used for how many digits the binaries should have
-            format_string = "0" + str(len(inputs)) + "b"
-            binary_string = format(i, format_string)
-            for ch in str(binary_string):
-                row.append(int(ch))
-            result_matrix.append(row)
-        return result_matrix
+        return errors
     
 class Single_Neuron_Network(Supervised_Network):
     '''
@@ -494,7 +456,21 @@ class Single_Neuron_Network(Supervised_Network):
         x = input_sum - self.threshold
         return self.sigmoid(x) 
         #return self.step_function(input_sum) #returns 1 or 0
-         
+        
+    def test_values(self, inputs):
+        '''Generates a matrix of all possible test values'''
+        result_matrix = []
+        #Counts in binary numbers and adds them then splits the digits to make the matrix
+        for i in range(len(inputs) * len(inputs)):
+            row = []
+            #Used for how many digits the binaries should have
+            format_string = "0" + str(len(inputs)) + "b"
+            binary_string = format(i, format_string)
+            for ch in str(binary_string):
+                row.append(int(ch))
+            result_matrix.append(row)
+        return result_matrix
+    
     @staticmethod
     def sigmoid(x):
         '''Returns a float between 0 and 1'''
