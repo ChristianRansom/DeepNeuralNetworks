@@ -36,15 +36,8 @@ class GUI:
         
         self.root.bind('<Return>', self.start)
         
-        '''
-        test_data = [ 
-                        [ [1,0,1,0],  [0,1,1,0], [0,1,0,1], [1,0,0,1] ], 
-                        [  [0],    [1],   [0],   [1]  ]          
-                    ]
-        self.a_network = network.Supervised_Network([4, 4, 1], test_data, self.canvas)
-        '''
-
-        self.a_network = network.Supervised_Network([2, 2, 1], self.canvas)
+        #self.a_network = network.Supervised_Network([2, 6, 3, 1], self.canvas)
+        self.a_network = network.Single_Neuron_Network(4, self.canvas)
         
         #print(matrix.Matrix.multiply(a_matrix, b_matrix))
         
@@ -52,7 +45,7 @@ class GUI:
         #a_network.test()
         #a_network.print_network()
         self.a_network.draw_network()
-        self.start()
+        #self.start()
         
         self.root.mainloop()
 
@@ -61,9 +54,19 @@ class GUI:
     def start(self, *args):
         self.a_network.draw_network()
         
-        test_inputs = [[0,1],  [1,0], [1,1], [0,0]]
-        test_output = [ [1],    [1],   [0],   [0] ]
+        self.a_network.test()
+        '''
+        test_data = [ 
+                        [ [1,0,1,0],  [0,1,1,0], [0,1,0,1], [1,0,0,1] ], 
+                        [  [0],    [1],   [0],   [1]  ]          
+                    ]
+        self.a_network = network.Supervised_Network([4, 4, 1], test_data, self.canvas)
         self.a_network.train(test_inputs, test_output, 1)
+
+        '''
+        
+        
+        
         
     def quit_game(self):
         sys.exit(0)

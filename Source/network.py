@@ -240,6 +240,7 @@ class Supervised_Network(Network):
         '''
         if len(self.layers[0]) != len(test_input[0]) or len(self.layers[-1]) != len(test_output[0]):
             raise Exception('The test data does not match the network layout. ')
+        
         self.test_input = test_input #This is the correct output that the network should eventually learn after enough training
         self.test_output = test_output
         
@@ -358,68 +359,15 @@ class Single_Neuron_Network(Supervised_Network):
         recognize which fighters in a game will be strong enough to win a fight. There are
         many different factors which affect the chance a fighter will win. After lots of 
         labeled training, the Network should be able to accurately predict whether or not
-        a fighter will win or lose'''
+        a fighter will win or lose
+        
+        
         
         '''
-        self.correct_data.append(neuron.Input("fast", 5))
-        self.correct_data.append(neuron.Input("strong", 7))
-        self.correct_data.append(neuron.Input("skilled", 4))
-        self.correct_data.append(neuron.Input("tall", 2))
-        self.correct_data.append(neuron.Input("intelligent", 10))
         
-        #the thresholds/biases should actually be implemented randomly as well. 
-        #correct data needs to only be a matrix of inputs and a correct output. 
-        #we don't need to create a whole network just for the inputs
-        
-        #I'll manually put in incorrect weights for now. Usually its randomly generated 
-        input_data = []
-        input_data.append(neuron.Input("fast", 0))
-        input_data.append(neuron.Input("strong", 0))
-        input_data.append(neuron.Input("skilled", 0))
-        input_data.append(neuron.Input("tall", 0))
-        input_data.append(neuron.Input("intelligent", 0))
-        #a_neuron = neuron.Neuron(input_data, threshold)
-        self.test_matrix = self.test_values(input_data)   
-        self.train(100) '''
-        test_inputs = [[0, 0, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0], [0, 0, 1, 1], [0, 1, 0, 0], [0, 1, 0, 1], [0, 1, 1, 0], [0, 1, 1, 1], [1, 0, 0, 0], [1, 0, 0, 1], [1, 0, 1, 0], [1, 0, 1, 1], [1, 1, 0, 0], [1, 1, 0, 1], [1, 1, 1, 0], [1, 1, 1, 1]]
-
-        
-        
-    def train(self, iterations):
-        '''A training iteration will test all possible input values
-        and adjust the weights with each test
-        
-        @param iterations: how many cycles of training we want to do
-        '''
-        
-        #generates all possible test values in a matrix
-        test_matrix = self.test_values(self.layers[0])
-        
-        self.draw_weights()
-        
-        for _ in range(iterations): #how many times to iterate through all possible inputs
-            for row in range(len(test_matrix)): #all the possible combinations of input
-                print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-                print("Testing with input values: " + str(test_matrix[row]))
-                0
-                #updates input values to next set of test values from the test matrix
-                self.update_input_values(self.layers[0], test_matrix, row)
-                
-                self.update_input_values(self.correct_data, test_matrix, row)
-                    
-                #calculates the output of the whole neuron 
-                self.output = self.calc_output(self.layers[1][0]) #send in output neuron
-                
-                #calculates the output of a neuron with the correct weights
-                correct_output = self.calc_output(self.correct_data) 
-                self.adjust_weights(correct_output)
-    
-    def update_input_values(self, inputs, matrix, row):
-        counter = 0 #keeps track of which test value input we're inputing
-        #updates input values to next set of test values from the test matrix
-        for input in inputs: 
-            input.value = matrix[row][counter]
-            counter = counter + 1              
+        test_input = [[0, 0, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0], [0, 0, 1, 1], [0, 1, 0, 0], [0, 1, 0, 1], [0, 1, 1, 0], [0, 1, 1, 1], [1, 0, 0, 0], [1, 0, 0, 1], [1, 0, 1, 0], [1, 0, 1, 1], [1, 1, 0, 0], [1, 1, 0, 1], [1, 1, 1, 0], [1, 1, 1, 1]]
+        test_output = [     [0],          [0],          [0],          [0],          [0],          [0],          [0],          [0],          [0],          [0],          [1],          [1],          [1],          [1],          [1],          [1],   ]
+        self.train(test_input, test_output, 65)
                 
     def adjust_weights(self, correct_output):        
         #calculates weight adjustment based on current output and correct output difference
@@ -443,23 +391,6 @@ class Single_Neuron_Network(Supervised_Network):
         '''This method assumes that the inputs of this neuron are already updated'''
         return self.activation_function(self.input_sum(self.layers[0]))
         
-    @staticmethod
-    def input_sum(inputs):
-        '''multiplies the inputs by their weights and then adds them together'''
-        result = 0
-        for input in inputs:
-            result = result + input.output * input.weight
-        return result
-    
-    def activation_function(self, input_sum):
-        '''
-        This function calculates the proper output for the neuron
-        based on the inputs
-        '''
-        x = input_sum - self.threshold
-        return self.sigmoid(x) 
-        #return self.step_function(input_sum) #returns 1 or 0
-        
     def test_values(self, inputs):
         '''Generates a matrix of all possible test values'''
         result_matrix = []
@@ -474,12 +405,6 @@ class Single_Neuron_Network(Supervised_Network):
             result_matrix.append(row)
         return result_matrix
     
-    @staticmethod
-    def sigmoid(x):
-        '''Returns a float between 0 and 1'''
-        # 1 / (1 + 3^(x-1))
-        return 1 /(1 + math.pow(math.e, (x * -1)))
-
     def step_function(self, input_sum):
         '''Returns 1 or 0'''
         bias = self.threshold * -1
